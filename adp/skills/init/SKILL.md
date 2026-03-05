@@ -32,18 +32,18 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    1. Read the prd.json at the path given below
    2. Read progress.txt (same folder as prd.json) for context from previous iterations — if it exists
    3. Pick the first user story where passes is false
-   4. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
-   5. If not already implemented: implement ONLY that user story
-   6. Run typecheck, linter, and tests
-   7. If failing: fix and retry (max 3 attempts)
-   8. If passing: git commit, append progress to progress.txt (same folder as prd.json)
-   9. Do NOT set passes to true — the review step handles that
-   10. Exit
+   4. Read the spec file (path in prd.json) for this story's acceptance criteria, AND read every file in docs/*.md for project conventions. You must follow these conventions in your implementation.
+   5. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
+   6. If not already implemented: implement ONLY that user story
+   7. Run typecheck, linter, and tests
+   8. If failing: fix and retry (max 3 attempts)
+   9. If passing: git commit, append progress to progress.txt (same folder as prd.json)
+   10. Do NOT set passes to true — the review step handles that
+   11. Exit
 
    ## Rules
    - Work on ONE user story only. Do not look ahead.
    - Every commit must pass typecheck, linter, and tests.
-   - Read docs/*.md for conventions when touching relevant code.
    - Keep commits small and descriptive (conventional commits). **Commit subjects must be fully lowercase** — no uppercase letters anywhere, including abbreviations (write `url` not `URL`, `api` not `API`).
    - **Never leave uncommitted changes.** Before exiting, run `git status`. If there are modified or staged files, either commit them or revert them. Leaving uncommitted work causes the review agent to reject the story and wastes a full iteration.
    - Print a short status line before each major step (e.g. "Reading prd.json...", "Implementing US-003: add login form", "Running tests...", "Committing...").
@@ -58,23 +58,23 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    ## Your Task
    1. Read the prd.json at the path given below to identify the current user story (first where passes is false)
-   2. Read the git diff of the last commit(s) from this iteration
-   3. Simplify the code without changing behavior:
+   2. Read every file in docs/*.md for project conventions
+   3. Read the git diff of the last commit(s) from this iteration
+   4. Simplify the code without changing behavior — ensure the result follows docs/*.md conventions:
       - Remove dead code and unused imports
       - Extract duplicated logic
       - Simplify conditionals and reduce nesting
       - Improve naming where intent is unclear
       - Remove unnecessary abstractions
-   4. Run typecheck, linter, and tests — nothing may break
-   5. If you made changes: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
-   6. If nothing to simplify: exit without committing
-   7. Exit
+   5. Run typecheck, linter, and tests — nothing may break
+   6. If you made changes: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
+   7. If nothing to simplify: exit without committing
+   8. Exit
 
    ## Rules
    - Do NOT change behavior. Only restructure and clean up.
    - Do NOT add features, fix bugs, or address other stories.
    - If tests fail after your changes, revert and exit.
-   - Read docs/*.md for conventions to ensure consistency.
    - Print a short status line before each major step (e.g. "Reading diff...", "Simplifying US-003...", "Running tests...", "Nothing to simplify — skipping.").
    ```
 
@@ -87,8 +87,8 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ## Your Task
    1. Read the prd.json at the path given below
    2. Identify which user story was just implemented (the first where passes is false)
-   3. Read the acceptance criteria for that story
-   4. Review the git diff (all commits from this iteration) against each acceptance criterion
+   3. Read the acceptance criteria for that story AND read every file in docs/*.md for project conventions
+   4. Review the git diff (all commits from this iteration) against each acceptance criterion and each relevant convention
    5. Decide: APPROVE or REJECT
 
    ## If APPROVE
