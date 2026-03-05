@@ -1,5 +1,5 @@
 ---
-description: Derive prd.json and implementation plan from a spec
+description: Derive prd.json from an approved spec
 argument-hint: Feature name or spec path
 ---
 

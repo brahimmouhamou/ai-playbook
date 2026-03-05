@@ -1,11 +1,11 @@
 ---
 name: plan
-description: "Derive a prd.json and implementation plan from an approved feature spec. Use when the user wants to start implementation planning."
+description: "Derive a prd.json from an approved feature spec. Use when the user wants to start implementation planning."
 ---
 
 # /plan
 
-Derive a prd.json and implementation plan from an approved feature spec.
+Derive a prd.json from an approved feature spec.
 
 ## Prerequisites
 
@@ -44,30 +44,27 @@ If the spec isn't ready, stop and tell the user to finish it first.
 
    Rules:
    - **Mirror the spec exactly.** IDs, titles, and acceptance criteria come straight from the spec. Don't add, remove, or rephrase.
+   - **Order by priority.** Place stories in implementation order — dependencies first. The first `passes: false` story is the next one the agent picks up.
    - **All stories start as `passes: false`.** The implementation loop flips them.
    - **No per-story verification.** Verification is global via hooks (typecheck, linter, tests).
    - **Feature and spec path are required.** The prd.json must reference the source spec.
 
-5. **Generate `.adp/implementation-plan.md`**: Write a short plan covering:
-   - Suggested story ordering (which to implement first based on dependencies)
-   - Any notes on shared groundwork that multiple stories depend on
-   - Keep it brief — this is a guide, not a second spec
-
-6. **Present to user**: Show both files for review.
+5. **Present to user**: Show the file for review.
 
 ## Key Principles
 
 - **Everything in `.adp/` is disposable.** If the plan drifts (e.g. a `/new-insight` updated the spec), regenerate from the spec. Delete the whole folder after the feature ships.
 - **The spec is permanent, the plan is not.** The spec is the source of truth. The plan is a derived artifact.
 - **Conventions resolve at plan time.** The spec links conventions for human readability. The agent reads them during planning to inform implementation.
+- **Array order is the plan.** No separate implementation plan file. The story order in prd.json determines what gets built first.
 
 ## Done
 
 The plan is ready when:
 - prd.json has an entry for every user story in the spec
 - IDs and acceptance criteria match the spec exactly
-- implementation-plan.md has a suggested story order
+- Stories are ordered by implementation priority (dependencies first)
 - `.adp/` is in `.gitignore`
-- The human has reviewed both files
+- The human has reviewed the file
 
-Next step: Start the implementation loop — pick the first user story and implement it.
+Next step: Start the implementation loop — pick the first `passes: false` story and implement it.
