@@ -21,9 +21,13 @@ If the spec isn't ready, stop and tell the user to finish it first.
 
 2. **Read the spec and its conventions**: Read the spec file. For each file referenced in the Conventions section, read it too. Conventions are resolved at plan time — the agent needs their content to implement correctly.
 
-3. **Ensure `.adp/artifacts/` exists**: Create `.adp/artifacts/NNN-feature-name/` at the project root if it doesn't exist. The folder name matches the spec folder name.
-
-   **If `prd.json` or `progress.txt` already exist in that folder, delete both before continuing.** A fresh plan must not inherit stale progress state — any previously approved stories will be re-verified by the implementation loop.
+3. **Clean and prepare the artifacts folder**: Run these commands exactly:
+   ```bash
+   mkdir -p .adp/artifacts/NNN-feature-name
+   rm -f .adp/artifacts/NNN-feature-name/prd.json
+   rm -f .adp/artifacts/NNN-feature-name/progress.txt
+   ```
+   Always delete both files even if only one exists. A fresh plan must never inherit stale progress state.
 
 4. **Generate `.adp/artifacts/NNN-feature-name/prd.json`**: For each user story in the spec, create an entry following the format in `references/prd-format.md`.
 
