@@ -109,22 +109,28 @@ The prd.json path and feature context will be provided below this prompt by loop
 
 Standalone stream filter. Reads NDJSON from `claude --output-format stream-json` on stdin, prints structured progress with timestamps and relative paths.
 
+By default only agent thoughts (💬) and results (✅/❌) are shown. Pass `--verbose` as the second argument to also show tool calls (📖 ✏️ ⚡ 🔧).
+
 ```bash
 #!/bin/bash
-# Usage: claude -p --output-format stream-json --verbose | .adp/adp-stream.sh [project-root]
+# Usage: claude -p --output-format stream-json --verbose | .adp/adp-stream.sh [project-root] [--verbose]
 
 ROOT="${1:-$(pwd)/}"
+VERBOSE="${2:-}"
 
-jq -r --unbuffered --arg root "$ROOT" '
+jq -r --unbuffered --arg root "$ROOT" --arg verbose "$VERBOSE" '
   def strip_root: if startswith($root) then .[$root | length:] else . end;
   if .type == "assistant" then
     [.message.content[]? |
       if .type == "tool_use" then
-        if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
-        elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
-        elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
-        elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
-        else "🔧 " + .name
+        if $verbose == "--verbose" then
+          if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
+          elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
+          elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
+          elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+          else "🔧 " + .name
+          end
+        else empty
         end
       elif .type == "text" then
         .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "💬 " + .value else "      " + .value end) | join("\n") else empty end
@@ -150,8 +156,9 @@ done || true
 #!/bin/bash
 set -euo pipefail
 
-FEATURE="${1:?Usage: .adp/loop.sh <feature-name> [max-iterations]}"
+FEATURE="${1:?Usage: .adp/loop.sh <feature-name> [max-iterations] [--verbose]}"
 MAX_ITERATIONS="${2:-30}"
+VERBOSE="${3:-}"
 PRD=".adp/artifacts/$FEATURE/prd.json"
 
 if [ ! -f "$PRD" ]; then
@@ -172,7 +179,7 @@ PROJECT_ROOT="$(pwd)/"
 
 run_phase() {
   local prompt="$1"
-  { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT"
+  { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT" "$VERBOSE"
 }
 
 for i in $(seq 1 "$MAX_ITERATIONS"); do
