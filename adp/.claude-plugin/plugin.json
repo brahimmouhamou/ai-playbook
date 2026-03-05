@@ -1,7 +1,7 @@
 {
   "name": "adp",
   "version": "0.1.0",
-  "description": "Agentic development playbook with spec-driven workflows. Includes /new-spec for guided feature spec creation, /new-insight for routing feedback to the right files, and /plan for deriving prd.json from approved specs.",
+  "description": "Agentic development playbook with spec-driven workflows. Commands: /init (bootstrap workspace), /new-spec (guided spec creation), /new-insight (route feedback), /plan (derive prd.json), /help (workflow overview).",
   "author": {
     "name": "NineID"
   },
