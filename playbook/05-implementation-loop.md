@@ -141,24 +141,26 @@ adp_stream() {
     if .type == "assistant" then
       [.message.content[]? |
         if .type == "tool_use" then
-          if .name == "Read" then "   📖 " + ((.input.file_path // "?") | strip_root)
-          elif .name == "Write" then "   ✏️  " + ((.input.file_path // "?") | strip_root)
-          elif .name == "Edit" then "   ✏️  " + ((.input.file_path // "?") | strip_root)
-          elif .name == "Bash" then "   ⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
-          else "   🔧 " + .name
+          if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
+          elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
+          elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
+          elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+          else "🔧 " + .name
           end
         elif .type == "text" then
-          .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "   💬 " + .value else "      " + .value end) | join("\n") else empty end
+          .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "💬 " + .value else "      " + .value end) | join("\n") else empty end
         else empty
         end
       ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
     elif .type == "result" then
-      if .subtype == "success" then "   ✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
-      else "   ❌ Error: " + (.result // "unknown")
+      if .subtype == "success" then "✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
+      else "❌ Error: " + (.result // "unknown")
       end
     else empty
     end
-  ' 2>/dev/null || true
+  ' 2>/dev/null | while IFS= read -r line; do
+    echo "   $(date +%H:%M:%S) $line"
+  done || true
 }
 
 for i in $(seq 1 "$MAX_ITERATIONS"); do
