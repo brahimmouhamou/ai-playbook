@@ -130,20 +130,27 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ---"
 
    # Stream filter: reads NDJSON from claude, prints structured progress
+   # Event types: system (skip), assistant (text + tool_use in .message.content[]),
+   #              tool_result (skip), result (final status in .subtype)
    adp_stream() {
      jq -r --unbuffered '
-       if .type == "tool_use" then
-         if .name == "Read" then "   📖 " + (.input.file_path // "?")
-         elif .name == "Write" then "   ✏️  " + (.input.file_path // "?")
-         elif .name == "Edit" then "   ✏️  " + (.input.file_path // "?")
-         elif .name == "Bash" then "   ⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
-         else "   🔧 " + .name
-         end
-       elif .type == "message" then
-         (.content // [] | map(select(.type == "text") | .text) | join("") | if . != "" then . | split("\n") | to_entries | map(if .key == 0 then "   💬 " + .value else "      " + .value end) | join("\n") else empty end)
+       if .type == "assistant" then
+         [.message.content[]? |
+           if .type == "tool_use" then
+             if .name == "Read" then "   📖 " + (.input.file_path // "?")
+             elif .name == "Write" then "   ✏️  " + (.input.file_path // "?")
+             elif .name == "Edit" then "   ✏️  " + (.input.file_path // "?")
+             elif .name == "Bash" then "   ⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+             else "   🔧 " + .name
+             end
+           elif .type == "text" then
+             .text | if . != "" then split("\n") | to_entries | map(if .key == 0 then "   💬 " + .value else "      " + .value end) | join("\n") else empty end
+           else empty
+           end
+         ] | join("\n") | if . != "" then . else empty end
        elif .type == "result" then
-         if .status == "success" then "   ✅ Done"
-         else "   ❌ Error: " + (.error // "unknown")
+         if .subtype == "success" then "   ✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
+         else "   ❌ Error: " + (.result // "unknown")
          end
        else empty
        end
