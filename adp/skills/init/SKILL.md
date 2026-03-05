@@ -9,9 +9,9 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
 ## Process
 
-1. **Check if `.adp/` already exists**: If it does, warn the user and ask before overwriting.
+1. **Never delete existing files.** If `.adp/` already exists, that's fine — proceed and overwrite only PROMPT.md and loop.sh. Never remove the `artifacts/` folder or anything inside it. Existing prd.json files, progress.txt files, and any other user content must be preserved.
 
-2. **Create the folder structure**:
+2. **Create the folder structure** (use `mkdir -p`, safe to run if folders exist):
    ```
    .adp/
    ├── PROMPT.md
