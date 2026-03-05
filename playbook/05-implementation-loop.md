@@ -34,6 +34,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 - Every commit must pass typecheck, linter, and tests.
 - Read docs/*.md for conventions when touching relevant code.
 - Keep commits small and descriptive (conventional commits).
+- Print a short status line before each major step (e.g. "Reading prd.json...", "Implementing US-003: add login form", "Running tests...", "Committing...").
 ```
 
 ---
@@ -64,6 +65,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 - Do NOT add features, fix bugs, or address other stories.
 - If tests fail after your changes, revert and exit.
 - Read docs/*.md for conventions to ensure consistency.
+- Print a short status line before each major step (e.g. "Reading diff...", "Simplifying US-003...", "Running tests...", "Nothing to simplify — skipping.").
 ```
 
 ---
@@ -90,6 +92,9 @@ The prd.json path and feature context will be provided below this prompt by loop
 - Do NOT change passes
 - Append "REJECTED: US-NNN — [specific reasons and what needs to change]" to progress.txt (same folder as prd.json)
 - The next implementation iteration will read this feedback
+
+## Rules
+- Print a short status line before each major step (e.g. "Reading AC for US-003...", "Checking criterion: user can log in...", "APPROVED: US-003", "REJECTED: US-003 — missing error handling").
 
 ## Review Checklist
 - Does the diff satisfy every acceptance criterion? (check each AC individually)
@@ -124,23 +129,51 @@ PRD path: $PRD
 Progress path: .adp/artifacts/$FEATURE/progress.txt
 ---"
 
+# Stream filter: reads NDJSON from claude, prints structured progress
+adp_stream() {
+  jq -r --unbuffered '
+    if .type == "tool_use" then
+      if .name == "Read" then "║   📖 Read: " + (.input.file_path // "?")
+      elif .name == "Write" then "║   ✏️  Write: " + (.input.file_path // "?")
+      elif .name == "Edit" then "║   ✏️  Edit: " + (.input.file_path // "?")
+      elif .name == "Bash" then "║   ⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+      else "║   🔧 " + .name
+      end
+    elif .type == "message" then
+      (.content // [] | map(select(.type == "text") | .text) | join("") | if . != "" then "║   💬 " + (split("\n")[0] | if length > 120 then .[:120] + "..." else . end) else empty end)
+    elif .type == "result" then
+      if .status == "success" then "║   ✅ Done"
+      else "║   ❌ Error: " + (.error // "unknown")
+      end
+    else empty
+    end
+  ' 2>/dev/null || true
+}
+
 for i in $(seq 1 "$MAX_ITERATIONS"); do
-  echo "=== ADP iteration $i/$MAX_ITERATIONS — implement ==="
-  { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions
-
-  echo "=== ADP iteration $i/$MAX_ITERATIONS — simplify ==="
-  { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions
-
-  echo "=== ADP iteration $i/$MAX_ITERATIONS — review ==="
-  { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions
+  echo ""
+  echo "╔══ ADP iteration $i/$MAX_ITERATIONS ══════════════════════════"
+  echo "║"
+  echo "║ 🔨 IMPLEMENT"
+  { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
+  echo "║"
+  echo "║ 🧹 SIMPLIFY"
+  { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
+  echo "║"
+  echo "║ 🔍 REVIEW"
+  { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
+  echo "║"
+  echo "╚══════════════════════════════════════════════════════════════"
 
   if jq -e '[.userStories[] | select(.passes == false)] | length == 0' "$PRD" > /dev/null 2>&1; then
-    echo "All user stories complete!"
+    echo ""
+    echo "🎉 All user stories complete!"
     exit 0
   fi
 done
 
-echo "Reached max iterations ($MAX_ITERATIONS). Some stories still incomplete."
+echo ""
+echo "⚠️  Reached max iterations ($MAX_ITERATIONS). Some stories still incomplete."
 exit 1
 ```
 
