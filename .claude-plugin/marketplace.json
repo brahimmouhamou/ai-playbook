@@ -6,7 +6,7 @@
   },
   "plugins": [
     {
-      "name": "agentic-dev-playbook",
+      "name": "adp",
       "description": "Spec-driven development skills with /new-spec and /new-insight",
       "source": "./agentic-dev-playbook"
     }
