@@ -29,8 +29,9 @@ Create a convention-aware feature spec through guided discovery. For full contex
    - **No technical details.** Describe what the user experiences, not how the system implements it.
    - **Conventions are feature-level.** Listed once at the top to avoid repetition.
    - **Links, not names.** Convention references are markdown links.
-   - **Keep stories small.** Each user story should be completable in one Ralph iteration. If too big, split it.
+   - **Keep stories small.** Each user story should be completable in one implementation iteration. If too big, split it.
    - **Mark unknowns, don't guess.** Use `[NEEDS CLARIFICATION: question]` for anything unclear.
+   - **Specs don't hold state.** No checkboxes, no pass/fail tracking, no progress indicators. The spec defines *what* done looks like. Tracking *whether* it's done is the job of prd.json.
 
 5. **Review the draft**: Spawn three parallel Sonnet review agents:
    - **Functional analyst**: Are the user stories complete? Missing edge cases? Acceptance criteria testable?

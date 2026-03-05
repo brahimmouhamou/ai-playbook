@@ -1,4 +1,4 @@
-# The Ralph Loop
+# The Implementation Loop
 
 ## Principle: Iteration Beats Perfection
 
@@ -12,12 +12,12 @@ A bash loop with fresh context per iteration. The agent picks one user story, im
 You are implementing a feature for NineID.
 
 ## Your Task
-1. Read .ralph/prd.json
+1. Read .adp/prd.json
 2. Pick the first user story where passes is false
 3. Implement ONLY that user story
 4. Run typecheck, linter, and tests
 5. If passing: set passes to true, git commit,
-   append progress to .ralph/progress.txt
+   append progress to .adp/progress.txt
 6. If failing: fix and retry (max 3 attempts)
 7. Exit
 
@@ -36,11 +36,11 @@ You are implementing a feature for NineID.
 #!/bin/bash
 MAX_ITERATIONS=30
 for i in $(seq 1 $MAX_ITERATIONS); do
-  echo "=== Ralph iteration $i ==="
-  cat .ralph/PROMPT.md | claude -p --model opus
+  echo "=== ADP iteration $i ==="
+  cat .adp/PROMPT.md | claude -p --model opus
 
   # Check if all user stories pass
-  if jq -e '[.userStories[] | select(.passes == false)] | length == 0' .ralph/prd.json > /dev/null 2>&1; then
+  if jq -e '[.userStories[] | select(.passes == false)] | length == 0' .adp/prd.json > /dev/null 2>&1; then
     echo "All user stories complete!"
     break
   fi

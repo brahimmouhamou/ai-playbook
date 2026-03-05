@@ -66,8 +66,9 @@ All markers must be resolved before moving to plan derivation.
 - **No technical details.** The spec describes *what* the user experiences, not *how* the system implements it.
 - **Conventions are feature-level.** Listed once at the top to avoid repetition, can be applicable to one or more user stories.
 - **Links, not names.** Convention references are markdown links so both humans and agents can navigate directly to the source.
-- **Keep stories small.** A user story should be completable in one Ralph iteration. If it feels too big, split it into smaller stories in the spec.
+- **Keep stories small.** A user story should be completable in one implementation iteration. If it feels too big, split it into smaller stories in the spec.
 - **Mark unknowns, don't guess.** Use `[NEEDS CLARIFICATION: question]` inline for anything unclear. All markers must be resolved before the spec moves to plan derivation.
+- **Specs don't hold state.** No checkboxes, no pass/fail tracking, no progress indicators. The spec defines *what* done looks like. Tracking *whether* it's done is the job of prd.json.
 
 ---
 

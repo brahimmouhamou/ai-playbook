@@ -14,4 +14,4 @@
 
 7. **Plans are disposable.** If prd.json drifts, regenerate from spec. If progress.txt is stale, delete it.
 
-8. **Start with HITL Ralph.** Watch single iterations, tune your prompts, then graduate to overnight runs.
+8. **Start with HITL.** Watch single iterations, tune your prompts, then graduate to overnight runs.

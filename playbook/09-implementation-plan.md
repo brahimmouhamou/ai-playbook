@@ -69,19 +69,19 @@
 
 ---
 
-## Phase 5: Ralph Loop Setup (Day 4-5)
+## Phase 5: Implementation Loop Setup (Day 4-5)
 
 **Goal**: Get the basic loop running
 
-11. Create `.ralph/PROMPT.md`:
+11. Create `.adp/PROMPT.md`:
     - Instructions for picking one user story, implementing, verifying, committing
     - Reference to docs/ for conventions
     - Progress.txt append instruction
 
-12. Create the loop script (`ralph.sh`):
+12. Create the loop script (`adp-loop.sh`):
     - Bash loop with iteration cap (start with 5-10)
     - Completion check (all user stories passes: true)
-    - Start with HITL Ralph (single iterations, you watch)
+    - Start with HITL mode (single iterations, you watch)
 
 13. Set up hooks:
     - PostToolUse: `tsc --noEmit` after file edits
@@ -127,7 +127,7 @@
 18. Run the full workflow on job-description-search:
     - Use /new-spec to verify your existing spec is clean (or refactor it)
     - Derive prd.json from spec
-    - Start Ralph in HITL mode (single iterations, you watch)
+    - Start in HITL mode (single iterations, you watch)
     - Observe TDD cycle, review quality, progress tracking
     - Iterate on prompts based on what you observe
 
@@ -136,7 +136,7 @@
     - Adjust hook sensitivity
     - Add missing convention docs for things the agent gets wrong
 
-20. Graduate to AFK Ralph:
+20. Graduate to AFK mode:
     - Increase iteration cap to 20-30
     - Run in Docker sandbox for safety
     - Monitor via progress.txt and git log

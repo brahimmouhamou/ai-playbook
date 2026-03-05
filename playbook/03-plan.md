@@ -8,18 +8,18 @@ The spec references conventions for human readability. The plan inlines them for
 
 ## The Derivation Prompt
 
-Run once before starting a Ralph loop:
+Run once before starting a implementation loop:
 
 ```
 Read specs/NNN-feature-name/spec.md.
 For each file referenced in the Conventions section, read it too.
 Generate:
-1. .ralph/prd.json — each user story as an entry with:
+1. .adp/prd.json — each user story as an entry with:
    - id (matching US-NNN from spec)
    - title
    - acceptanceCriteria (list, copied from spec)
    - passes: false
-2. .ralph/implementation-plan.md — story ordering with dependencies
+2. .adp/implementation-plan.md — story ordering with dependencies
 
 The agent reads convention files and docs/ during implementation
 to figure out the technical approach. The plan just mirrors
@@ -63,11 +63,11 @@ The plan mirrors the spec structure. User stories are the unit of work. Verifica
 
 ## Key Principles
 
-Everything in `.ralph/` is disposable — both `prd.json` and `implementation-plan.md`. If the plan drifts (e.g. because a `/new-insight` updated the spec), regenerate it from the spec. Delete the whole folder after the feature ships. The spec is permanent, the plan is not.
+Everything in `.adp/` is disposable — both `prd.json` and `implementation-plan.md`. If the plan drifts (e.g. because a `/new-insight` updated the spec), regenerate it from the spec. Delete the whole folder after the feature ships. The spec is permanent, the plan is not.
 
-The `.ralph/` folder lives at the project root, not inside `specs/`. This keeps a clean separation between human-owned files (`specs/`, `docs/`) and agent-owned derived artifacts. Add it to `.gitignore`:
+The `.adp/` folder lives at the project root, not inside `specs/`. This keeps a clean separation between human-owned files (`specs/`, `docs/`) and agent-owned derived artifacts. Add it to `.gitignore`:
 
 ```
 # Agent-derived artifacts (disposable, regenerate from spec)
-.ralph/
+.adp/
 ```
