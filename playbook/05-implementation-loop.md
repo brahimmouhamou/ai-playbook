@@ -35,6 +35,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 - Read docs/*.md for conventions when touching relevant code.
 - Keep commits small and descriptive (conventional commits).
 - Print a short status line before each major step (e.g. "Reading prd.json...", "Implementing US-003: add login form", "Running tests...", "Committing...").
+- **Use tracer bullets.** Build the thinnest possible end-to-end slice first — one path through all layers (e.g. backend endpoint → contract → frontend hook → UI). Get it working, then fill in the remaining cases. This surfaces integration issues early and keeps each commit shippable.
 ```
 
 ---
