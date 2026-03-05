@@ -1,5 +1,14 @@
 {
   "name": "ai-playbook",
   "description": "NineID agentic development playbook",
-  "plugins": ["agentic-dev-playbook"]
+  "owner": {
+    "name": "NineID"
+  },
+  "plugins": [
+    {
+      "name": "agentic-dev-playbook",
+      "description": "Spec-driven development skills with /new-spec and /new-insight",
+      "path": "./agentic-dev-playbook"
+    }
+  ]
 }
