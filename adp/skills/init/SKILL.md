@@ -9,12 +9,13 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
 ## Process
 
-1. **Never delete existing files.** If `.adp/` already exists, that's fine — proceed and overwrite only PROMPT.md, loop.sh, and review.md. Never remove the `artifacts/` folder or anything inside it. Existing prd.json files, progress.txt files, and any other user content must be preserved.
+1. **Never delete existing files.** If `.adp/` already exists, that's fine — proceed and overwrite only PROMPT.md, simplify.md, review.md, and loop.sh. Never remove the `artifacts/` folder or anything inside it. Existing prd.json files, progress.txt files, and any other user content must be preserved.
 
 2. **Create the folder structure** (use `mkdir -p`, safe to run if folders exist):
    ```
    .adp/
    ├── PROMPT.md
+   ├── simplify.md
    ├── review.md
    ├── loop.sh
    └── artifacts/
@@ -42,7 +43,31 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    - Keep commits small and descriptive (conventional commits).
    ```
 
-4. **Create `.adp/review.md`**:
+4. **Create `.adp/simplify.md`**:
+   ```markdown
+   You are simplifying code that was just implemented for a user story.
+
+   ## Your Task
+   1. Read the git diff of the last commit(s) from this iteration
+   2. Simplify the code without changing behavior:
+      - Remove dead code and unused imports
+      - Extract duplicated logic
+      - Simplify conditionals and reduce nesting
+      - Improve naming where intent is unclear
+      - Remove unnecessary abstractions
+   3. Run typecheck, linter, and tests — nothing may break
+   4. If you made changes: git commit with "refactor: simplify US-NNN"
+   5. If nothing to simplify: exit without committing
+   6. Exit
+
+   ## Rules
+   - Do NOT change behavior. Only restructure and clean up.
+   - Do NOT add features, fix bugs, or address other stories.
+   - If tests fail after your changes, revert and exit.
+   - Read docs/*.md for conventions to ensure consistency.
+   ```
+
+5. **Create `.adp/review.md`**:
    ```markdown
    You are reviewing a completed user story.
 
@@ -50,7 +75,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    1. Find the prd.json in .adp/artifacts/ for the current feature
    2. Identify which user story was just implemented (the first where passes is false)
    3. Read the acceptance criteria for that story
-   4. Review the git diff (last commit vs previous) against each acceptance criterion
+   4. Review the git diff (all commits from this iteration) against each acceptance criterion
    5. Decide: APPROVE or REJECT
 
    ## If APPROVE
@@ -69,7 +94,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    - Is the implementation minimal and focused (no scope creep)?
    ```
 
-5. **Create `.adp/loop.sh`**:
+6. **Create `.adp/loop.sh`**:
    ```bash
    #!/bin/bash
    set -euo pipefail
@@ -88,6 +113,9 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
      echo "=== ADP iteration $i/$MAX_ITERATIONS — implement ==="
      cat .adp/PROMPT.md | claude -p
 
+     echo "=== ADP iteration $i/$MAX_ITERATIONS — simplify ==="
+     cat .adp/simplify.md | claude -p
+
      echo "=== ADP iteration $i/$MAX_ITERATIONS — review ==="
      cat .adp/review.md | claude -p
 
@@ -101,21 +129,22 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    exit 1
    ```
 
-6. **Make `loop.sh` executable**: Run `chmod +x .adp/loop.sh`.
+7. **Make `loop.sh` executable**: Run `chmod +x .adp/loop.sh`.
 
-7. **Update `.gitignore`**: Check if `.adp/artifacts/**/progress.txt` is already in `.gitignore`. If not, append:
+8. **Update `.gitignore`**: Check if `.adp/artifacts/**/progress.txt` is already in `.gitignore`. If not, append:
    ```
    # ADP: agent progress logs (ephemeral, per-feature)
    .adp/artifacts/**/progress.txt
    ```
    To check: `grep -q 'adp/artifacts' .gitignore` — skip if it matches.
 
-8. **Confirm to user**: Show what was created.
+9. **Confirm to user**: Show what was created.
 
 ## Done
 
 The workspace is ready when:
 - `.adp/PROMPT.md` exists
+- `.adp/simplify.md` exists
 - `.adp/review.md` exists
 - `.adp/loop.sh` exists and is executable
 - `.adp/artifacts/` directory exists

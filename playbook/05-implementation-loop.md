@@ -2,7 +2,12 @@
 
 ## Principle: Iteration Beats Perfection
 
-A bash loop with fresh context per iteration. Each iteration has two phases: implement and review. The implementing agent picks one user story, builds it, and commits. The review agent checks the diff against the acceptance criteria and either approves or rejects. Different agents, independent judgment.
+A bash loop with fresh context per iteration. Each iteration has three phases: implement, simplify, review. Three agents, three jobs, independent context.
+
+```
+implement → simplify → review
+make it work   make it clean   verify it's correct
+```
 
 ---
 
@@ -31,6 +36,33 @@ You are implementing a feature.
 
 ---
 
+## simplify.md (simplify agent)
+
+```markdown
+You are simplifying code that was just implemented for a user story.
+
+## Your Task
+1. Read the git diff of the last commit(s) from this iteration
+2. Simplify the code without changing behavior:
+   - Remove dead code and unused imports
+   - Extract duplicated logic
+   - Simplify conditionals and reduce nesting
+   - Improve naming where intent is unclear
+   - Remove unnecessary abstractions
+3. Run typecheck, linter, and tests — nothing may break
+4. If you made changes: git commit with "refactor: simplify US-NNN"
+5. If nothing to simplify: exit without committing
+6. Exit
+
+## Rules
+- Do NOT change behavior. Only restructure and clean up.
+- Do NOT add features, fix bugs, or address other stories.
+- If tests fail after your changes, revert and exit.
+- Read docs/*.md for conventions to ensure consistency.
+```
+
+---
+
 ## review.md (review agent)
 
 ```markdown
@@ -40,7 +72,7 @@ You are reviewing a completed user story.
 1. Find the prd.json in .adp/artifacts/ for the current feature
 2. Identify which user story was just implemented (the first where passes is false)
 3. Read the acceptance criteria for that story
-4. Review the git diff (last commit vs previous) against each acceptance criterion
+4. Review the git diff (all commits from this iteration) against each acceptance criterion
 5. Decide: APPROVE or REJECT
 
 ## If APPROVE
@@ -81,6 +113,9 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
   echo "=== ADP iteration $i/$MAX_ITERATIONS — implement ==="
   cat .adp/PROMPT.md | claude -p
 
+  echo "=== ADP iteration $i/$MAX_ITERATIONS — simplify ==="
+  cat .adp/simplify.md | claude -p
+
   echo "=== ADP iteration $i/$MAX_ITERATIONS — review ==="
   cat .adp/review.md | claude -p
 
@@ -96,15 +131,6 @@ exit 1
 
 ---
 
-## Review Layers
-
-The per-story review in the loop is the first layer. After all stories pass:
-
-- **`/simplify`** — post-feature review with parallel agents (simplify, security, performance). Runs once before opening a PR.
-- **`/code-review`** — PR-time review with parallel reviewers and confidence scoring. Runs once on the full diff.
-
----
-
 ## Feedback Loops (Backpressure)
 
 The agent can't cheat. These gates reject bad work automatically:
@@ -112,4 +138,5 @@ The agent can't cheat. These gates reject bad work automatically:
 - **TypeScript compiler** — types don't lie
 - **Test suite** — behavior verified mechanically
 - **Linter** — style enforced deterministically
+- **Simplify agent** — cleans up implementation debt before review
 - **Review agent** — independent AC verification per story

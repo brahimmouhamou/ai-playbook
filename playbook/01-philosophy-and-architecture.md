@@ -47,6 +47,7 @@ Your job shifts from writing code to writing specifications and engineering back
 │                                                         │
 │  .adp/                      Agent workspace              │
 │  ├── PROMPT.md              Implement instructions       │
+│  ├── simplify.md            Simplify instructions        │
 │  ├── review.md              Review instructions          │
 │  ├── loop.sh                Loop script                  │
 │  └── artifacts/                                          │
