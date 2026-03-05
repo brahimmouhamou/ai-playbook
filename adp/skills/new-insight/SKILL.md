@@ -25,6 +25,18 @@ Route bugs, questions, and discoveries to the right file using a decision tree.
 - If the convention file exists, add the new behavior
 - If no convention covers this concern, create a new one
 
+## Scope Boundary
+
+Do NOT read source code, trace execution paths, debug root causes, or propose implementation fixes. Your job ends at drafting the spec/convention update. The implementation loop handles the fix.
+
+## What If No Spec Exists?
+
+If the decision tree points to a feature spec that doesn't exist yet, do NOT create one. A single bug report is not enough context for a proper spec. Instead:
+
+1. Tell the user no spec exists for this feature
+2. Suggest using `/new-spec` to create the spec first
+3. Then come back with `/new-insight` to add the bug as an acceptance criterion
+
 ## How to Draft the Addition
 
 Write in the appropriate voice for the target file:
