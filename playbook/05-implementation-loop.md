@@ -109,7 +109,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 
 Standalone stream filter. Reads NDJSON from `claude --output-format stream-json` on stdin, prints structured progress with timestamps and relative paths.
 
-By default only agent thoughts (💬) and results (✅/❌) are shown. Pass `--verbose` as the second argument to also show tool calls (📖 ✏️ ⚡ 🔧).
+By default shows agent thoughts (💬), results (✅/❌), and reads from `specs/`, `docs/`, or `.adp/` only. Pass `--verbose` as the second argument to also show all tool calls (📖 ✏️ ⚡ 🔧).
 
 ```bash
 #!/bin/bash
@@ -120,6 +120,7 @@ VERBOSE="${2:-}"
 
 jq -r --unbuffered --arg root "$ROOT" --arg verbose "$VERBOSE" '
   def strip_root: if startswith($root) then .[$root | length:] else . end;
+  def is_context_path: startswith("specs/") or startswith("docs/") or startswith(".adp/");
   if .type == "assistant" then
     [.message.content[]? |
       if .type == "tool_use" then
@@ -130,6 +131,9 @@ jq -r --unbuffered --arg root "$ROOT" --arg verbose "$VERBOSE" '
           elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
           else "🔧 " + .name
           end
+        elif .name == "Read" then
+          ((.input.file_path // "?") | strip_root) as $path |
+          if ($path | is_context_path) then "📖 " + $path else empty end
         else empty
         end
       elif .type == "text" then
