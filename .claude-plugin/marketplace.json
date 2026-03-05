@@ -8,7 +8,7 @@
     {
       "name": "agentic-dev-playbook",
       "description": "Spec-driven development skills with /new-spec and /new-insight",
-      "path": "./agentic-dev-playbook"
+      "source": "./agentic-dev-playbook"
     }
   ]
 }
