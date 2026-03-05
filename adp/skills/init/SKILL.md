@@ -133,17 +133,17 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    adp_stream() {
      jq -r --unbuffered '
        if .type == "tool_use" then
-         if .name == "Read" then "║   📖 Read: " + (.input.file_path // "?")
-         elif .name == "Write" then "║   ✏️  Write: " + (.input.file_path // "?")
-         elif .name == "Edit" then "║   ✏️  Edit: " + (.input.file_path // "?")
-         elif .name == "Bash" then "║   ⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
-         else "║   🔧 " + .name
+         if .name == "Read" then "   📖 " + (.input.file_path // "?")
+         elif .name == "Write" then "   ✏️  " + (.input.file_path // "?")
+         elif .name == "Edit" then "   ✏️  " + (.input.file_path // "?")
+         elif .name == "Bash" then "   ⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+         else "   🔧 " + .name
          end
        elif .type == "message" then
-         (.content // [] | map(select(.type == "text") | .text) | join("") | if . != "" then "║   💬 " + (split("\n")[0] | if length > 120 then .[:120] + "..." else . end) else empty end)
+         (.content // [] | map(select(.type == "text") | .text) | join("") | if . != "" then . | split("\n") | to_entries | map(if .key == 0 then "   💬 " + .value else "      " + .value end) | join("\n") else empty end)
        elif .type == "result" then
-         if .status == "success" then "║   ✅ Done"
-         else "║   ❌ Error: " + (.error // "unknown")
+         if .status == "success" then "   ✅ Done"
+         else "   ❌ Error: " + (.error // "unknown")
          end
        else empty
        end
@@ -152,18 +152,18 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    for i in $(seq 1 "$MAX_ITERATIONS"); do
      echo ""
-     echo "╔══ ADP iteration $i/$MAX_ITERATIONS ══════════════════════════"
-     echo "║"
-     echo "║ 🔨 IMPLEMENT"
+     echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
+     echo ""
+     echo "🔨 IMPLEMENT"
      { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
-     echo "║"
-     echo "║ 🧹 SIMPLIFY"
+     echo ""
+     echo "🧹 SIMPLIFY"
      { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
-     echo "║"
-     echo "║ 🔍 REVIEW"
+     echo ""
+     echo "🔍 REVIEW"
      { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
-     echo "║"
-     echo "╚══════════════════════════════════════════════════════════════"
+     echo ""
+     echo "────────────────────────────────────────────────────────────────"
 
      if jq -e '[.userStories[] | select(.passes == false)] | length == 0' "$PRD" > /dev/null 2>&1; then
        echo ""
