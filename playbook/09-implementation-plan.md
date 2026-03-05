@@ -60,12 +60,13 @@
 9. Write your plan skill (save as `.claude/skills/plan/SKILL.md`):
    - Reads feature spec + all referenced convention files
    - Generates prd.json with user stories and acceptance criteria
-   - Generates implementation-plan.md
+   - Stories ordered by implementation priority (dependencies first)
 
 10. Test plan derivation on your job-description-search spec:
     - Run the derivation
     - Verify prd.json mirrors all user stories from the spec
     - Verify acceptance criteria are copied correctly
+    - Verify story order makes sense (dependencies first)
 
 ---
 

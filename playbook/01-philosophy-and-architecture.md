@@ -45,9 +45,8 @@ Your job shifts from writing code to writing specifications and engineering back
 ┌─────────────────────────────────────────────────────────┐
 │                    AGENT-OWNED                          │
 │                                                         │
-│  .adp/                    Derived, disposable         │
-│  ├── prd.json               User stories with passes    │
-│  ├── implementation-plan.md Task ordering               │
+│  .adp/                      Derived, disposable         │
+│  ├── prd.json               User stories (ordered)      │
 │  ├── progress.txt           Session log (ephemeral)     │
 │  └── PROMPT.md              Loop instructions           │
 └─────────────────────────────────────────────────────────┘
