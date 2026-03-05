@@ -26,7 +26,8 @@ Display the following overview to the user exactly as written:
 
 ```
 .adp/
-├── PROMPT.md                              # loop instructions (committed)
+├── PROMPT.md                              # implement instructions (committed)
+├── review.md                              # review instructions (committed)
 ├── loop.sh                                # loop script (committed)
 └── artifacts/
     └── NNN-feature-name/

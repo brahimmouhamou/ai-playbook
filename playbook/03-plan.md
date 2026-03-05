@@ -62,7 +62,8 @@ The plan mirrors the spec structure. User stories are the unit of work, ordered 
 
 ```
 .adp/
-├── PROMPT.md                              # generic loop instructions (committed)
+├── PROMPT.md                              # implement instructions (committed)
+├── review.md                              # review instructions (committed)
 ├── loop.sh                                # loop script (committed)
 ├── artifacts/
 │   ├── 001-job-description-search/

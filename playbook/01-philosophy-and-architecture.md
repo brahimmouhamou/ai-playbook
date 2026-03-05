@@ -46,8 +46,9 @@ Your job shifts from writing code to writing specifications and engineering back
 │                    AGENT-OWNED                          │
 │                                                         │
 │  .adp/                      Agent workspace              │
-│  ├── PROMPT.md              Loop instructions (committed)│
-│  ├── loop.sh                Loop script (committed)      │
+│  ├── PROMPT.md              Implement instructions       │
+│  ├── review.md              Review instructions          │
+│  ├── loop.sh                Loop script                  │
 │  └── artifacts/                                          │
 │      └── NNN-feature/                                    │
 │          ├── prd.json       User stories (committed)     │
