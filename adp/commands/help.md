@@ -3,14 +3,14 @@ description: Show ADP workflow overview and available commands
 argument-hint:
 ---
 
-Display the following overview to the user:
+Display the following overview to the user exactly as written:
 
 # ADP — Agentic Development Playbook
 
 ## Workflow
 
 ```
-/adp:init  →  /adp:new-spec  →  /adp:plan  →  loop.sh
+/adp:init  →  /adp:new-spec  →  /adp:plan  →  .adp/loop.sh
   setup         write spec       derive prd     implement
 ```
 
@@ -41,6 +41,13 @@ Display the following overview to the user:
 - **Conventions avoid repetition.** Product behavior in `specs/conventions/`, technical rules in `docs/conventions/`.
 - **prd.json is committed.** It tracks progress across sessions. Only `progress.txt` is gitignored.
 
+## Running the Loop
+
+```bash
+.adp/loop.sh 019-worker-jobs-panel        # default 30 iterations
+.adp/loop.sh 019-worker-jobs-panel 10     # limit to 10 iterations
+```
+
 ## Methodology
 
-The full playbook (philosophy, spec format, loop design, TDD, code review) lives in the plugin's source repo. Read the playbook at `playbook/00-start.md` for the deep dive.
+The full playbook lives in the plugin's source repo. Start at `playbook/00-start.md`.

@@ -24,12 +24,12 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    You are implementing a feature.
 
    ## Your Task
-   1. Read .adp/artifacts/<feature>/prd.json
+   1. Find the prd.json in .adp/artifacts/ for the current feature
    2. Pick the first user story where passes is false
    3. Implement ONLY that user story
    4. Run typecheck, linter, and tests
    5. If passing: set passes to true, git commit,
-      append progress to .adp/artifacts/<feature>/progress.txt
+      append progress to the feature's progress.txt (next to prd.json)
    6. If failing: fix and retry (max 3 attempts)
    7. Exit
 
@@ -43,35 +43,42 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 4. **Create `.adp/loop.sh`**:
    ```bash
    #!/bin/bash
-   FEATURE="${1:?Usage: ./loop.sh <feature-name>}"
-   MAX_ITERATIONS=${2:-30}
+   set -euo pipefail
 
-   if [ ! -f ".adp/artifacts/$FEATURE/prd.json" ]; then
-     echo "Error: .adp/artifacts/$FEATURE/prd.json not found"
-     echo "Run /adp:plan first to generate the prd.json"
+   FEATURE="${1:?Usage: .adp/loop.sh <feature-name> [max-iterations]}"
+   MAX_ITERATIONS="${2:-30}"
+   PRD=".adp/artifacts/$FEATURE/prd.json"
+
+   if [ ! -f "$PRD" ]; then
+     echo "Error: $PRD not found."
+     echo "Run /adp:plan first to generate the prd.json."
      exit 1
    fi
 
-   for i in $(seq 1 $MAX_ITERATIONS); do
-     echo "=== ADP iteration $i ==="
-     cat .adp/PROMPT.md | claude -p --model opus
+   for i in $(seq 1 "$MAX_ITERATIONS"); do
+     echo "=== ADP iteration $i/$MAX_ITERATIONS ==="
+     cat .adp/PROMPT.md | claude -p
 
-     if jq -e '[.userStories[] | select(.passes == false)] | length == 0' .adp/artifacts/$FEATURE/prd.json > /dev/null 2>&1; then
+     if jq -e '[.userStories[] | select(.passes == false)] | length == 0' "$PRD" > /dev/null 2>&1; then
        echo "All user stories complete!"
-       break
+       exit 0
      fi
    done
+
+   echo "Reached max iterations ($MAX_ITERATIONS). Some stories still incomplete."
+   exit 1
    ```
 
-5. **Make `loop.sh` executable**: `chmod +x .adp/loop.sh`
+5. **Make `loop.sh` executable**: Run `chmod +x .adp/loop.sh`.
 
-6. **Update `.gitignore`**: Append the following if not already present:
+6. **Update `.gitignore`**: Check if `.adp/artifacts/**/progress.txt` is already in `.gitignore`. If not, append:
    ```
    # ADP: agent progress logs (ephemeral, per-feature)
    .adp/artifacts/**/progress.txt
    ```
+   To check: `grep -q 'adp/artifacts' .gitignore` — skip if it matches.
 
-7. **Confirm to user**: Show what was created and explain the workflow.
+7. **Confirm to user**: Show what was created.
 
 ## Done
 
