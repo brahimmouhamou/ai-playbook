@@ -5,6 +5,8 @@
 ```markdown
 # Feature: [Name]
 
+> One-line summary of what this feature does from the user's perspective.
+
 ## Problem
 Why this feature exists. 2-3 sentences from the user's perspective.
 
@@ -38,6 +40,7 @@ All markers must be resolved before moving to plan derivation.
 
 ## Key Rules
 
+- **Summary line is mandatory.** The `> summary` blockquote right after the title enables efficient scanning across all specs (one grep instead of reading every file).
 - **No technical details.** The spec describes what the user experiences, not how the system implements it. No mention of databases, APIs, migrations, components, or file paths.
 - **Conventions are feature-level.** Listed once at the top to avoid repetition, even if a convention only applies to some user stories.
 - **Links, not names.** Convention references are markdown links so both humans and agents can navigate directly to the source.

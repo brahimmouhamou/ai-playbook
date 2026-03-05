@@ -29,6 +29,8 @@ Each feature spec contains ONLY the functional scope — what's unique about thi
 ```markdown
 # Feature: [Name]
 
+> One-line summary of what this feature does from the user's perspective.
+
 ## Problem
 Why this feature exists. 2-3 sentences from the user's perspective.
 
@@ -63,6 +65,7 @@ All markers must be resolved before moving to plan derivation.
 
 ### Key rules
 
+- **Summary line is mandatory.** The `> summary` blockquote right after the title enables efficient scanning across all specs (one grep instead of reading every file).
 - **No technical details.** The spec describes *what* the user experiences, not *how* the system implements it.
 - **Conventions are feature-level.** Listed once at the top to avoid repetition, can be applicable to one or more user stories.
 - **Links, not names.** Convention references are markdown links so both humans and agents can navigate directly to the source.

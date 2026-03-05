@@ -28,6 +28,8 @@ Create a convention-aware feature spec through guided discovery.
    ```markdown
    # Feature: [Name]
 
+   > One-line summary of what this feature does from the user's perspective.
+
    ## Problem
    Why this feature exists. 2-3 sentences from the user's perspective.
 
@@ -53,6 +55,7 @@ Create a convention-aware feature spec through guided discovery.
    ```
 
    Rules for the spec:
+   - **Summary line is mandatory.** Always include a `> one-line summary` blockquote right after the title. This enables efficient scanning across all specs.
    - **No technical details.** Describe what the user experiences, not how the system implements it.
    - **Conventions are feature-level.** Listed once at the top to avoid repetition.
    - **Links, not names.** Convention references are markdown links.

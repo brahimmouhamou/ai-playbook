@@ -26,6 +26,7 @@ Create a convention-aware feature spec through guided discovery. For full contex
 4. **Draft the spec**: Save to `specs/NNN-short-name/spec.md` following the template in `references/spec-format.md`.
 
    Rules for the spec:
+   - **Summary line is mandatory.** Always include a `> one-line summary` blockquote right after the title. This enables efficient scanning across all specs.
    - **No technical details.** Describe what the user experiences, not how the system implements it.
    - **Conventions are feature-level.** Listed once at the top to avoid repetition.
    - **Links, not names.** Convention references are markdown links.

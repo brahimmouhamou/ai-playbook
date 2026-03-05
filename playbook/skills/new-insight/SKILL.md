@@ -29,13 +29,40 @@ Route bugs, questions, and discoveries to the right file using a decision tree.
 
 Do NOT read source code, trace execution paths, debug root causes, or propose implementation fixes. Your job ends at drafting the spec/convention update. The implementation loop handles the fix.
 
+## Finding the Right Spec
+
+Do NOT read every spec file. Instead, scan all specs in one call:
+
+```bash
+grep -A1 "^# Feature:" specs/*/spec.md
+```
+
+This returns every spec's title and summary line. Read only the matching spec, or determine that none exists.
+
 ## What If No Spec Exists?
 
-If the decision tree points to a feature spec that doesn't exist yet, do NOT create one. A single bug report is not enough context for a proper spec. Instead:
+If the decision tree points to a feature that has no spec yet, create a **stub spec** — just enough to park the finding so it doesn't get lost. The stub can be expanded later with `/new-spec`.
 
-1. Tell the user no spec exists for this feature
-2. Suggest using `/new-spec` to create the spec first
-3. Then come back with `/new-insight` to add the bug as an acceptance criterion
+Stub format:
+
+```markdown
+# Feature: [Name]
+
+> [One-line summary of the feature]
+
+> ⚠️ Stub — created from a bug report. Use `/new-spec` to expand into a full specification.
+
+## User Stories
+
+### US-001: [Short title derived from the bug]
+
+**Acceptance Criteria**:
+- AC-001: Given [context], when [action], then [outcome]
+```
+
+To generate the spec number, check existing `specs/` folders to find the highest number and use the next one.
+
+The stub intentionally omits Problem, Conventions, Out of Scope, and Open Questions — those come when `/new-spec` expands it later.
 
 ## How to Draft the Addition
 
