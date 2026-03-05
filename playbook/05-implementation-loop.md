@@ -117,8 +117,10 @@ By default shows agent thoughts (💬), results (✅/❌), and reads from `specs
 
 ROOT="${1:-$(pwd)/}"
 VERBOSE="${2:-}"
+LABEL="${3:-}"
+CURRENT_US="${4:-}"
 
-jq -r --unbuffered --arg root "$ROOT" --arg verbose "$VERBOSE" '
+jq -r --unbuffered --arg root "$ROOT" --arg verbose "$VERBOSE" --arg label "$LABEL" --arg current_us "$CURRENT_US" '
   def strip_root: if startswith($root) then .[$root | length:] else . end;
   def is_context_path: startswith("specs/") or startswith("docs/") or startswith(".adp/");
   if .type == "assistant" then
@@ -142,7 +144,8 @@ jq -r --unbuffered --arg root "$ROOT" --arg verbose "$VERBOSE" '
       end
     ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
   elif .type == "result" then
-    if .subtype == "success" then "✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
+    if .subtype == "success" then
+      "✅ Done with " + $label + (if $current_us != "" then " · " + $current_us else "" end) + " (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
     else "❌ Error: " + (.result // "unknown")
     end
   else empty
@@ -183,21 +186,23 @@ PROJECT_ROOT="$(pwd)/"
 
 run_phase() {
   local prompt="$1"
-  { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT" "$VERBOSE"
+  local label="$2"
+  { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT" "$VERBOSE" "$label" "$CURRENT_US"
 }
 
 for i in $(seq 1 "$MAX_ITERATIONS"); do
+  CURRENT_US=$(jq -r '[.userStories[] | select(.passes == false)] | first | "\(.id): \(.title)"' "$PRD" 2>/dev/null || echo "")
   echo ""
   echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
   echo ""
   echo "🔨 IMPLEMENT"
-  run_phase .adp/PROMPT.md
+  run_phase .adp/PROMPT.md "IMPLEMENT"
   echo ""
   echo "🧹 SIMPLIFY"
-  run_phase .adp/simplify.md
+  run_phase .adp/simplify.md "SIMPLIFY"
   echo ""
   echo "🔍 REVIEW"
-  run_phase .adp/review.md
+  run_phase .adp/review.md "REVIEW"
   echo ""
   echo "────────────────────────────────────────────────────────────────"
 
