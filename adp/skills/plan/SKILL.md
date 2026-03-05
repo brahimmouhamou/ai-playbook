@@ -23,6 +23,8 @@ If the spec isn't ready, stop and tell the user to finish it first.
 
 3. **Ensure `.adp/artifacts/` exists**: Create `.adp/artifacts/NNN-feature-name/` at the project root if it doesn't exist. The folder name matches the spec folder name.
 
+   **If `prd.json` or `progress.txt` already exist in that folder, delete both before continuing.** A fresh plan must not inherit stale progress state — any previously approved stories will be re-verified by the implementation loop.
+
 4. **Generate `.adp/artifacts/NNN-feature-name/prd.json`**: For each user story in the spec, create an entry following the format in `references/prd-format.md`.
 
    Rules:
