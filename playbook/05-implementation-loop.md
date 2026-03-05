@@ -22,12 +22,13 @@ The prd.json path and feature context will be provided below this prompt by loop
 1. Read the prd.json at the path given below
 2. Read progress.txt (same folder as prd.json) for context from previous iterations — if it exists
 3. Pick the first user story where passes is false
-4. Implement ONLY that user story
-5. Run typecheck, linter, and tests
-6. If failing: fix and retry (max 3 attempts)
-7. If passing: git commit, append progress to progress.txt (same folder as prd.json)
-8. Do NOT set passes to true — the review step handles that
-9. Exit
+4. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
+5. If not already implemented: implement ONLY that user story
+6. Run typecheck, linter, and tests
+7. If failing: fix and retry (max 3 attempts)
+8. If passing: git commit, append progress to progress.txt (same folder as prd.json)
+9. Do NOT set passes to true — the review step handles that
+10. Exit
 
 ## Rules
 - Work on ONE user story only. Do not look ahead.
