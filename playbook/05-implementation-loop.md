@@ -34,7 +34,8 @@ The prd.json path and feature context will be provided below this prompt by loop
 - Work on ONE user story only. Do not look ahead.
 - Every commit must pass typecheck, linter, and tests.
 - Read docs/*.md for conventions when touching relevant code.
-- Keep commits small and descriptive (conventional commits).
+- Keep commits small and descriptive (conventional commits). **Commit subjects must be fully lowercase** — no uppercase letters anywhere, including abbreviations (write `url` not `URL`, `api` not `API`).
+- **Never leave uncommitted changes.** Before exiting, run `git status`. If there are modified or staged files, either commit them or revert them. Leaving uncommitted work causes the review agent to reject the story and wastes a full iteration.
 - Print a short status line before each major step (e.g. "Reading prd.json...", "Implementing US-003: add login form", "Running tests...", "Committing...").
 - **Use tracer bullets.** Build the thinnest possible end-to-end slice first — one path through all layers (e.g. backend endpoint → contract → frontend hook → UI). Get it working, then fill in the remaining cases. This surfaces integration issues early and keeps each commit shippable.
 ```
@@ -96,11 +97,12 @@ The prd.json path and feature context will be provided below this prompt by loop
 - The next implementation iteration will read this feedback
 
 ## Rules
+- **Do NOT run tests, typecheck, or lint.** The implement agent already verified these. Your only job is to read the diff and check it against the acceptance criteria. Running builds wastes 5–10 minutes.
+- **If there is no git diff** (implement agent fast-pathed or left no commits), check working tree changes with `git status`. If there are uncommitted changes relevant to this story, REJECT with "uncommitted changes — implement agent must commit before review."
 - Print a short status line before each major step (e.g. "Reading AC for US-003...", "Checking criterion: user can log in...", "APPROVED: US-003", "REJECTED: US-003 — missing error handling").
 
 ## Review Checklist
 - Does the diff satisfy every acceptance criterion? (check each AC individually)
-- Are there regressions in existing functionality?
 - Does the code follow conventions in docs/*.md?
 - Is the implementation minimal and focused (no scope creep)?
 ```
@@ -197,11 +199,23 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
   echo ""
   echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
   echo ""
+
+  BEFORE_SHA=$(git rev-parse HEAD 2>/dev/null || echo "none")
+
   echo "🔨 IMPLEMENT · $CURRENT_US"
   run_phase .adp/PROMPT.md "IMPLEMENT"
-  echo ""
-  echo "🧹 SIMPLIFY · $CURRENT_US"
-  run_phase .adp/simplify.md "SIMPLIFY"
+
+  AFTER_SHA=$(git rev-parse HEAD 2>/dev/null || echo "none")
+
+  if [ "$BEFORE_SHA" != "$AFTER_SHA" ]; then
+    echo ""
+    echo "🧹 SIMPLIFY · $CURRENT_US"
+    run_phase .adp/simplify.md "SIMPLIFY"
+  else
+    echo ""
+    echo "🧹 SIMPLIFY · $CURRENT_US — skipped (no new commits)"
+  fi
+
   echo ""
   echo "🔍 REVIEW · $CURRENT_US"
   run_phase .adp/review.md "REVIEW"
