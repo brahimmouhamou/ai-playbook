@@ -45,10 +45,13 @@ Your job shifts from writing code to writing specifications and engineering back
 ┌─────────────────────────────────────────────────────────┐
 │                    AGENT-OWNED                          │
 │                                                         │
-│  .adp/                      Derived, disposable         │
-│  ├── prd.json               User stories (ordered)      │
-│  ├── progress.txt           Session log (ephemeral)     │
-│  └── PROMPT.md              Loop instructions           │
+│  .adp/                      Agent workspace              │
+│  ├── PROMPT.md              Loop instructions (committed)│
+│  ├── loop.sh                Loop script (committed)      │
+│  └── artifacts/                                          │
+│      └── NNN-feature/                                    │
+│          ├── prd.json       User stories (committed)     │
+│          └── progress.txt   Learning log (gitignored)    │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐

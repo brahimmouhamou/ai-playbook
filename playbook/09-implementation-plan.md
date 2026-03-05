@@ -79,7 +79,7 @@
     - Reference to docs/ for conventions
     - Progress.txt append instruction
 
-12. Create the loop script (`adp-loop.sh`):
+12. Create the loop script (`loop.sh`):
     - Bash loop with iteration cap (start with 5-10)
     - Completion check (all user stories passes: true)
     - Start with HITL mode (single iterations, you watch)

@@ -22,7 +22,7 @@
 
 ## Fields
 
-- **feature**: The short name matching the spec folder (e.g., "job-description-search")
+- **feature**: The short name matching the spec folder (e.g., "019-worker-jobs-panel")
 - **spec**: Relative path to the source spec file
 - **userStories**: Array of user stories, ordered by implementation priority (dependencies first). The agent picks the first `passes: false` story each iteration.
   - **id**: Matches the US-NNN from the spec exactly
@@ -36,8 +36,8 @@
 - **Array order is the plan.** Stories are ordered by implementation priority — dependencies first. No separate implementation plan file needed.
 - **No per-story verification.** Verification is handled globally by hooks (typecheck, linter, tests) — not tracked in prd.json.
 - **User stories are the unit of work.** Each story maps to one implementation iteration.
-- **The file is disposable.** Regenerate from the spec if it drifts. Delete after the feature ships.
+- **Committable.** prd.json tracks progress and belongs in git. Only progress.txt is gitignored.
 
 ## Location
 
-The file lives at `.adp/prd.json` at the project root. The `.adp/` folder is gitignored.
+The file lives at `.adp/artifacts/NNN-feature-name/prd.json`. Each feature gets its own folder under `.adp/artifacts/`.

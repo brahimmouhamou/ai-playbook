@@ -13,7 +13,7 @@ Run once before starting an implementation loop:
 ```
 Read specs/NNN-feature-name/spec.md.
 For each file referenced in the Conventions section, read it too.
-Generate .adp/prd.json — each user story as an entry with:
+Generate .adp/artifacts/NNN-feature-name/prd.json — each user story as an entry with:
   - id (matching US-NNN from spec)
   - title
   - acceptanceCriteria (list, copied from spec)
@@ -58,13 +58,34 @@ The plan mirrors the spec structure. User stories are the unit of work, ordered 
 
 ---
 
+## File Structure
+
+```
+.adp/
+├── PROMPT.md                              # generic loop instructions (committed)
+├── loop.sh                                # loop script (committed)
+├── artifacts/
+│   ├── 001-job-description-search/
+│   │   ├── prd.json                       # committed (tracks progress)
+│   │   └── progress.txt                   # gitignored (ephemeral)
+│   └── 019-worker-jobs-panel/
+│       ├── prd.json
+│       └── progress.txt
+```
+
+Each feature gets its own folder under `.adp/artifacts/`. The folder name matches the spec folder name. prd.json is committed (it tracks progress); progress.txt is gitignored (it's an ephemeral learning log).
+
+---
+
 ## Key Principles
 
-Everything in `.adp/` is disposable. If the plan drifts (e.g. because a `/new-insight` updated the spec), regenerate it from the spec. Delete the whole folder after the feature ships. The spec is permanent, the plan is not.
+The `.adp/` folder lives at the project root, not inside `specs/`. This keeps a clean separation between human-owned files (`specs/`, `docs/`) and agent-owned derived artifacts.
 
-The `.adp/` folder lives at the project root, not inside `specs/`. This keeps a clean separation between human-owned files (`specs/`, `docs/`) and agent-owned derived artifacts. Add it to `.gitignore`:
+prd.json and the operational files (PROMPT.md, loop.sh) are committed to git. Only the ephemeral progress logs are ignored:
 
 ```
-# Agent-derived artifacts (disposable, regenerate from spec)
-.adp/
+# Agent progress logs (ephemeral, per-feature)
+.adp/artifacts/**/progress.txt
 ```
+
+If a plan drifts (e.g. because a `/new-insight` updated the spec), regenerate it from the spec. Delete the feature's artifact folder after the feature ships. The spec is permanent, the plan is not.
