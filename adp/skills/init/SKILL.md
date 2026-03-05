@@ -25,14 +25,16 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ```markdown
    You are implementing a feature.
 
+   The prd.json path and feature context will be provided below this prompt by loop.sh.
+
    ## Your Task
-   1. Read progress.txt (next to prd.json) for context from previous iterations
-   2. Find the prd.json in .adp/artifacts/ for the current feature
+   1. Read the prd.json at the path given below
+   2. Read progress.txt (same folder as prd.json) for context from previous iterations — if it exists
    3. Pick the first user story where passes is false
    4. Implement ONLY that user story
    5. Run typecheck, linter, and tests
    6. If failing: fix and retry (max 3 attempts)
-   7. If passing: git commit, append progress to the feature's progress.txt
+   7. If passing: git commit, append progress to progress.txt (same folder as prd.json)
    8. Do NOT set passes to true — the review step handles that
    9. Exit
 
@@ -47,18 +49,21 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ```markdown
    You are simplifying code that was just implemented for a user story.
 
+   The prd.json path and feature context will be provided below this prompt by loop.sh.
+
    ## Your Task
-   1. Read the git diff of the last commit(s) from this iteration
-   2. Simplify the code without changing behavior:
+   1. Read the prd.json at the path given below to identify the current user story (first where passes is false)
+   2. Read the git diff of the last commit(s) from this iteration
+   3. Simplify the code without changing behavior:
       - Remove dead code and unused imports
       - Extract duplicated logic
       - Simplify conditionals and reduce nesting
       - Improve naming where intent is unclear
       - Remove unnecessary abstractions
-   3. Run typecheck, linter, and tests — nothing may break
-   4. If you made changes: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
-   5. If nothing to simplify: exit without committing
-   6. Exit
+   4. Run typecheck, linter, and tests — nothing may break
+   5. If you made changes: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
+   6. If nothing to simplify: exit without committing
+   7. Exit
 
    ## Rules
    - Do NOT change behavior. Only restructure and clean up.
@@ -71,8 +76,10 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ```markdown
    You are reviewing a completed user story.
 
+   The prd.json path and feature context will be provided below this prompt by loop.sh.
+
    ## Your Task
-   1. Find the prd.json in .adp/artifacts/ for the current feature
+   1. Read the prd.json at the path given below
    2. Identify which user story was just implemented (the first where passes is false)
    3. Read the acceptance criteria for that story
    4. Review the git diff (all commits from this iteration) against each acceptance criterion
@@ -80,11 +87,11 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    ## If APPROVE
    - Set passes to true in prd.json
-   - Append "APPROVED: US-NNN — [brief summary]" to progress.txt
+   - Append "APPROVED: US-NNN — [brief summary]" to progress.txt (same folder as prd.json)
 
    ## If REJECT
    - Do NOT change passes
-   - Append "REJECTED: US-NNN — [specific reasons and what needs to change]" to progress.txt
+   - Append "REJECTED: US-NNN — [specific reasons and what needs to change]" to progress.txt (same folder as prd.json)
    - The next implementation iteration will read this feedback
 
    ## Review Checklist
@@ -109,15 +116,23 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
      exit 1
    fi
 
+   CONTEXT="
+
+   ---
+   Feature: $FEATURE
+   PRD path: $PRD
+   Progress path: .adp/artifacts/$FEATURE/progress.txt
+   ---"
+
    for i in $(seq 1 "$MAX_ITERATIONS"); do
      echo "=== ADP iteration $i/$MAX_ITERATIONS — implement ==="
-     cat .adp/PROMPT.md | claude -p
+     { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions
 
      echo "=== ADP iteration $i/$MAX_ITERATIONS — simplify ==="
-     cat .adp/simplify.md | claude -p
+     { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions
 
      echo "=== ADP iteration $i/$MAX_ITERATIONS — review ==="
-     cat .adp/review.md | claude -p
+     { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions
 
      if jq -e '[.userStories[] | select(.passes == false)] | length == 0' "$PRD" > /dev/null 2>&1; then
        echo "All user stories complete!"
