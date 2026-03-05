@@ -50,7 +50,7 @@ You are simplifying code that was just implemented for a user story.
    - Improve naming where intent is unclear
    - Remove unnecessary abstractions
 3. Run typecheck, linter, and tests — nothing may break
-4. If you made changes: git commit with "refactor(US-NNN): simplify"
+4. If you made changes: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
 5. If nothing to simplify: exit without committing
 6. Exit
 
