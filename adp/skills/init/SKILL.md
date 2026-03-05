@@ -45,6 +45,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    - Read docs/*.md for conventions when touching relevant code.
    - Keep commits small and descriptive (conventional commits).
    - Print a short status line before each major step (e.g. "Reading prd.json...", "Implementing US-003: add login form", "Running tests...", "Committing...").
+   - **Use tracer bullets.** Build the thinnest possible end-to-end slice first — one path through all layers (e.g. backend endpoint → contract → frontend hook → UI). Get it working, then fill in the remaining cases. This surfaces integration issues early and keeps each commit shippable.
    ```
 
 4. **Create `.adp/simplify.md`**:
@@ -114,20 +115,33 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    # Reads NDJSON from claude --output-format stream-json on stdin,
    # prints structured progress lines with timestamps and relative paths.
    #
-   # Usage: claude -p --output-format stream-json --verbose | .adp/adp-stream.sh [project-root]
+   # By default shows agent thoughts (💬), results (✅/❌), and reads from
+   # specs/, docs/, or .adp/ only. Pass --verbose as second arg for full output.
+   #
+   # Usage: claude -p --output-format stream-json --verbose | .adp/adp-stream.sh [project-root] [--verbose] [label] [current-us]
 
    ROOT="${1:-$(pwd)/}"
+   VERBOSE="${2:-}"
+   LABEL="${3:-}"
+   CURRENT_US="${4:-}"
 
-   jq -r --unbuffered --arg root "$ROOT" '
+   jq -r --unbuffered --arg root "$ROOT" --arg verbose "$VERBOSE" --arg label "$LABEL" --arg current_us "$CURRENT_US" '
      def strip_root: if startswith($root) then .[$root | length:] else . end;
+     def is_context_path: startswith("specs/") or startswith("docs/") or startswith(".adp/");
      if .type == "assistant" then
        [.message.content[]? |
          if .type == "tool_use" then
-           if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
-           elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
-           elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
-           elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
-           else "🔧 " + .name
+           if $verbose == "--verbose" then
+             if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
+             elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
+             elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
+             elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+             else "🔧 " + .name
+             end
+           elif .name == "Read" then
+             ((.input.file_path // "?") | strip_root) as $path |
+             if ($path | is_context_path) then "📖 " + $path else empty end
+           else empty
            end
          elif .type == "text" then
            .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "💬 " + .value else "      " + .value end) | join("\n") else empty end
@@ -135,7 +149,8 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
          end
        ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
      elif .type == "result" then
-       if .subtype == "success" then "✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
+       if .subtype == "success" then
+         "✅ Done with " + $label + (if $current_us != "" then " · " + $current_us else "" end) + " (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
        else "❌ Error: " + (.result // "unknown")
        end
      else empty
@@ -150,8 +165,9 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    #!/bin/bash
    set -euo pipefail
 
-   FEATURE="${1:?Usage: .adp/loop.sh <feature-name> [max-iterations]}"
+   FEATURE="${1:?Usage: .adp/loop.sh <feature-name> [max-iterations] [--verbose]}"
    MAX_ITERATIONS="${2:-30}"
+   VERBOSE="${3:-}"
    PRD=".adp/artifacts/$FEATURE/prd.json"
 
    if [ ! -f "$PRD" ]; then
@@ -172,21 +188,23 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    run_phase() {
      local prompt="$1"
-     { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT"
+     local label="$2"
+     { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT" "$VERBOSE" "$label" "$CURRENT_US"
    }
 
    for i in $(seq 1 "$MAX_ITERATIONS"); do
+     CURRENT_US=$(jq -r '[.userStories[] | select(.passes == false)] | first | "\(.id): \(.title)"' "$PRD" 2>/dev/null || echo "")
      echo ""
      echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
      echo ""
-     echo "🔨 IMPLEMENT"
-     run_phase .adp/PROMPT.md
+     echo "🔨 IMPLEMENT · $CURRENT_US"
+     run_phase .adp/PROMPT.md "IMPLEMENT"
      echo ""
-     echo "🧹 SIMPLIFY"
-     run_phase .adp/simplify.md
+     echo "🧹 SIMPLIFY · $CURRENT_US"
+     run_phase .adp/simplify.md "SIMPLIFY"
      echo ""
-     echo "🔍 REVIEW"
-     run_phase .adp/review.md
+     echo "🔍 REVIEW · $CURRENT_US"
+     run_phase .adp/review.md "REVIEW"
      echo ""
      echo "────────────────────────────────────────────────────────────────"
 
