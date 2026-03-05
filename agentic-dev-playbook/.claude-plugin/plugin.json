@@ -1,0 +1,9 @@
+{
+  "name": "agentic-dev-playbook",
+  "version": "0.1.0",
+  "description": "Agentic development playbook with spec-driven workflows. Includes /new-spec for guided feature spec creation and /new-insight for routing feedback to the right files.",
+  "author": {
+    "name": "NineID"
+  },
+  "keywords": ["specs", "agentic", "playbook", "tdd", "conventions"]
+}
