@@ -9,7 +9,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
 ## Process
 
-1. **Never delete existing files.** If `.adp/` already exists, that's fine — proceed and overwrite only PROMPT.md, simplify.md, review.md, and loop.sh. Never remove the `artifacts/` folder or anything inside it. Existing prd.json files, progress.txt files, and any other user content must be preserved.
+1. **Never delete existing files.** If `.adp/` already exists, that's fine — proceed and overwrite only PROMPT.md, simplify.md, review.md, loop.sh, and adp-stream.sh. Never remove the `artifacts/` folder or anything inside it. Existing prd.json files, progress.txt files, and any other user content must be preserved.
 
 2. **Create the folder structure** (use `mkdir -p`, safe to run if folders exist):
    ```
@@ -18,6 +18,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ├── simplify.md
    ├── review.md
    ├── loop.sh
+   ├── adp-stream.sh
    └── artifacts/
    ```
 
@@ -106,7 +107,45 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    - Is the implementation minimal and focused (no scope creep)?
    ```
 
-6. **Create `.adp/loop.sh`**:
+6. **Create `.adp/adp-stream.sh`**:
+   ```bash
+   #!/bin/bash
+   # Stream filter for ADP loop output.
+   # Reads NDJSON from claude --output-format stream-json on stdin,
+   # prints structured progress lines with timestamps and relative paths.
+   #
+   # Usage: claude -p --output-format stream-json --verbose | .adp/adp-stream.sh [project-root]
+
+   ROOT="${1:-$(pwd)/}"
+
+   jq -r --unbuffered --arg root "$ROOT" '
+     def strip_root: if startswith($root) then .[$root | length:] else . end;
+     if .type == "assistant" then
+       [.message.content[]? |
+         if .type == "tool_use" then
+           if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
+           elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
+           elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
+           elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+           else "🔧 " + .name
+           end
+         elif .type == "text" then
+           .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "💬 " + .value else "      " + .value end) | join("\n") else empty end
+         else empty
+         end
+       ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
+     elif .type == "result" then
+       if .subtype == "success" then "✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
+       else "❌ Error: " + (.result // "unknown")
+       end
+     else empty
+     end
+   ' 2>/dev/null | while IFS= read -r line; do
+     echo "   $(date +%H:%M:%S) $line"
+   done || true
+   ```
+
+7. **Create `.adp/loop.sh`**:
    ```bash
    #!/bin/bash
    set -euo pipefail
@@ -131,36 +170,9 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    PROJECT_ROOT="$(pwd)/"
 
-   # Stream filter: reads NDJSON from claude, prints structured progress
-   # Event types: system (skip), assistant (text + tool_use in .message.content[]),
-   #              tool_result (skip), result (final status in .subtype)
-   adp_stream() {
-     local root="$1"
-     jq -r --unbuffered --arg root "$root" '
-       def strip_root: if startswith($root) then .[$root | length:] else . end;
-       if .type == "assistant" then
-         [.message.content[]? |
-           if .type == "tool_use" then
-             if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
-             elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
-             elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
-             elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
-             else "🔧 " + .name
-             end
-           elif .type == "text" then
-             .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "💬 " + .value else "      " + .value end) | join("\n") else empty end
-           else empty
-           end
-         ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
-       elif .type == "result" then
-         if .subtype == "success" then "✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
-         else "❌ Error: " + (.result // "unknown")
-         end
-       else empty
-       end
-     ' 2>/dev/null | while IFS= read -r line; do
-       echo "   $(date +%H:%M:%S) $line"
-     done || true
+   run_phase() {
+     local prompt="$1"
+     { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT"
    }
 
    for i in $(seq 1 "$MAX_ITERATIONS"); do
@@ -168,13 +180,13 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
      echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
      echo ""
      echo "🔨 IMPLEMENT"
-     { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
+     run_phase .adp/PROMPT.md
      echo ""
      echo "🧹 SIMPLIFY"
-     { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
+     run_phase .adp/simplify.md
      echo ""
      echo "🔍 REVIEW"
-     { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
+     run_phase .adp/review.md
      echo ""
      echo "────────────────────────────────────────────────────────────────"
 
@@ -190,16 +202,16 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    exit 1
    ```
 
-7. **Make `loop.sh` executable**: Run `chmod +x .adp/loop.sh`.
+8. **Make both scripts executable**: Run `chmod +x .adp/loop.sh .adp/adp-stream.sh`.
 
-8. **Update `.gitignore`**: Check if `.adp/artifacts/**/progress.txt` is already in `.gitignore`. If not, append:
+9. **Update `.gitignore`**: Check if `.adp/artifacts/**/progress.txt` is already in `.gitignore`. If not, append:
    ```
    # ADP: agent progress logs (ephemeral, per-feature)
    .adp/artifacts/**/progress.txt
    ```
    To check: `grep -q 'adp/artifacts' .gitignore` — skip if it matches.
 
-9. **Confirm to user**: Show what was created.
+10. **Confirm to user**: Show what was created.
 
 ## Done
 
@@ -208,5 +220,6 @@ The workspace is ready when:
 - `.adp/simplify.md` exists
 - `.adp/review.md` exists
 - `.adp/loop.sh` exists and is executable
+- `.adp/adp-stream.sh` exists and is executable
 - `.adp/artifacts/` directory exists
 - `.gitignore` has the progress.txt exclusion pattern

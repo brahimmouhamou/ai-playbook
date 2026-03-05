@@ -66,6 +66,7 @@ The plan mirrors the spec structure. User stories are the unit of work, ordered 
 ├── simplify.md                            # simplify instructions (committed)
 ├── review.md                              # review instructions (committed)
 ├── loop.sh                                # loop script (committed)
+├── adp-stream.sh                          # output filter (committed)
 ├── artifacts/
 │   ├── 001-job-description-search/
 │   │   ├── prd.json                       # committed (tracks progress)

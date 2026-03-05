@@ -50,6 +50,7 @@ Your job shifts from writing code to writing specifications and engineering back
 │  ├── simplify.md            Simplify instructions        │
 │  ├── review.md              Review instructions          │
 │  ├── loop.sh                Loop script                  │
+│  ├── adp-stream.sh          Output filter                │
 │  └── artifacts/                                          │
 │      └── NNN-feature/                                    │
 │          ├── prd.json       User stories (committed)     │

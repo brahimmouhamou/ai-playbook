@@ -105,7 +105,46 @@ The prd.json path and feature context will be provided below this prompt by loop
 
 ---
 
-## The Loop Script
+## adp-stream.sh (output filter)
+
+Standalone stream filter. Reads NDJSON from `claude --output-format stream-json` on stdin, prints structured progress with timestamps and relative paths.
+
+```bash
+#!/bin/bash
+# Usage: claude -p --output-format stream-json --verbose | .adp/adp-stream.sh [project-root]
+
+ROOT="${1:-$(pwd)/}"
+
+jq -r --unbuffered --arg root "$ROOT" '
+  def strip_root: if startswith($root) then .[$root | length:] else . end;
+  if .type == "assistant" then
+    [.message.content[]? |
+      if .type == "tool_use" then
+        if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
+        elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
+        elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
+        elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
+        else "🔧 " + .name
+        end
+      elif .type == "text" then
+        .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "💬 " + .value else "      " + .value end) | join("\n") else empty end
+      else empty
+      end
+    ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
+  elif .type == "result" then
+    if .subtype == "success" then "✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
+    else "❌ Error: " + (.result // "unknown")
+    end
+  else empty
+  end
+' 2>/dev/null | while IFS= read -r line; do
+  echo "   $(date +%H:%M:%S) $line"
+done || true
+```
+
+---
+
+## loop.sh (the loop)
 
 ```bash
 #!/bin/bash
@@ -131,36 +170,9 @@ Progress path: .adp/artifacts/$FEATURE/progress.txt
 
 PROJECT_ROOT="$(pwd)/"
 
-# Stream filter: reads NDJSON from claude, prints structured progress
-# Event types: system (skip), assistant (text + tool_use in .message.content[]),
-#              tool_result (skip), result (final status in .subtype)
-adp_stream() {
-  local root="$1"
-  jq -r --unbuffered --arg root "$root" '
-    def strip_root: if startswith($root) then .[$root | length:] else . end;
-    if .type == "assistant" then
-      [.message.content[]? |
-        if .type == "tool_use" then
-          if .name == "Read" then "📖 " + ((.input.file_path // "?") | strip_root)
-          elif .name == "Write" then "✏️  " + ((.input.file_path // "?") | strip_root)
-          elif .name == "Edit" then "✏️  " + ((.input.file_path // "?") | strip_root)
-          elif .name == "Bash" then "⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
-          else "🔧 " + .name
-          end
-        elif .type == "text" then
-          .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "💬 " + .value else "      " + .value end) | join("\n") else empty end
-        else empty
-        end
-      ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
-    elif .type == "result" then
-      if .subtype == "success" then "✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
-      else "❌ Error: " + (.result // "unknown")
-      end
-    else empty
-    end
-  ' 2>/dev/null | while IFS= read -r line; do
-    echo "   $(date +%H:%M:%S) $line"
-  done || true
+run_phase() {
+  local prompt="$1"
+  { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT"
 }
 
 for i in $(seq 1 "$MAX_ITERATIONS"); do
@@ -168,13 +180,13 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
   echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
   echo ""
   echo "🔨 IMPLEMENT"
-  { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
+  run_phase .adp/PROMPT.md
   echo ""
   echo "🧹 SIMPLIFY"
-  { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
+  run_phase .adp/simplify.md
   echo ""
   echo "🔍 REVIEW"
-  { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
+  run_phase .adp/review.md
   echo ""
   echo "────────────────────────────────────────────────────────────────"
 
