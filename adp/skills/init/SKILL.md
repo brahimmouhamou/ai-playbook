@@ -56,7 +56,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
       - Improve naming where intent is unclear
       - Remove unnecessary abstractions
    3. Run typecheck, linter, and tests — nothing may break
-   4. If you made changes: git commit with "refactor: simplify US-NNN"
+   4. If you made changes: git commit with "refactor(US-NNN): simplify"
    5. If nothing to simplify: exit without committing
    6. Exit
 
