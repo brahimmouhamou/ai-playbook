@@ -21,20 +21,21 @@ If the spec isn't ready, stop and tell the user to finish it first.
 
 2. **Read the spec and its conventions**: Read the spec file. For each file referenced in the Conventions section, read it too. Conventions are resolved at plan time — the agent needs their content to implement correctly.
 
-3. **Clean and prepare the artifacts folder**: Run these commands exactly:
+3. **Prepare the artifacts folder**:
    ```bash
    mkdir -p .adp/artifacts/NNN-feature-name
-   rm -f .adp/artifacts/NNN-feature-name/prd.json
-   rm -f .adp/artifacts/NNN-feature-name/progress.txt
    ```
-   Always delete both files even if only one exists. A fresh plan must never inherit stale progress state.
 
 4. **Generate `.adp/artifacts/NNN-feature-name/prd.json`**: For each user story in the spec, create an entry following the format in `references/prd-format.md`.
 
    Rules:
    - **Mirror the spec exactly.** IDs, titles, and acceptance criteria come straight from the spec. Don't add, remove, or rephrase.
    - **Order by priority.** Place stories in implementation order — dependencies first. The first `passes: false` story is the next one the agent picks up.
-   - **All stories start as `passes: false`.** The implementation loop flips them.
+   - **Smart merge with existing prd.json.** If a prd.json already exists, compare each story by ID and acceptance criteria:
+     - If the story ID exists in the old prd.json **and its acceptance criteria are identical** → copy `passes` from the old entry.
+     - If the story is new or its acceptance criteria changed → set `passes: false`.
+     - Append a line to `progress.txt` listing which stories were reset and why (e.g. `RE-PLANNED: US-002 — new AC added: AC-016`).
+   - If no prd.json exists yet, all stories start as `passes: false`.
    - **No per-story verification.** Verification is global via hooks (typecheck, linter, tests).
    - **Feature and spec path are required.** The prd.json must reference the source spec.
 
@@ -44,7 +45,7 @@ If the spec isn't ready, stop and tell the user to finish it first.
 
 - **Artifacts are per-feature.** Each feature gets its own folder under `.adp/artifacts/`. This allows multiple features to be in flight simultaneously.
 - **prd.json is committable.** It tracks progress and should be in git so teammates can pick up where you left off. Only `progress.txt` is gitignored.
-- **The spec is permanent, the plan is not.** The spec is the source of truth. The plan is a derived artifact. If the plan drifts (e.g. a `/new-insight` updated the spec), regenerate from the spec.
+- **The spec is permanent, the plan is not.** The spec is the source of truth. The plan is a derived artifact. If the plan drifts (e.g. a `/new-insight` updated the spec), regenerate from the spec. Only stories with changed ACs get re-run — already-passing stories are preserved.
 - **Conventions resolve at plan time.** The spec links conventions for human readability. The agent reads them during planning to inform implementation.
 - **Array order is the plan.** No separate implementation plan file. The story order in prd.json determines what gets built first.
 
