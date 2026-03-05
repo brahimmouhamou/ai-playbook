@@ -129,25 +129,29 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    Progress path: .adp/artifacts/$FEATURE/progress.txt
    ---"
 
+   PROJECT_ROOT="$(pwd)/"
+
    # Stream filter: reads NDJSON from claude, prints structured progress
    # Event types: system (skip), assistant (text + tool_use in .message.content[]),
    #              tool_result (skip), result (final status in .subtype)
    adp_stream() {
-     jq -r --unbuffered '
+     local root="$1"
+     jq -r --unbuffered --arg root "$root" '
+       def strip_root: if startswith($root) then .[$root | length:] else . end;
        if .type == "assistant" then
          [.message.content[]? |
            if .type == "tool_use" then
-             if .name == "Read" then "   📖 " + (.input.file_path // "?")
-             elif .name == "Write" then "   ✏️  " + (.input.file_path // "?")
-             elif .name == "Edit" then "   ✏️  " + (.input.file_path // "?")
+             if .name == "Read" then "   📖 " + ((.input.file_path // "?") | strip_root)
+             elif .name == "Write" then "   ✏️  " + ((.input.file_path // "?") | strip_root)
+             elif .name == "Edit" then "   ✏️  " + ((.input.file_path // "?") | strip_root)
              elif .name == "Bash" then "   ⚡ " + (.input.command // "?" | split("\n")[0] | if length > 80 then .[:80] + "..." else . end)
              else "   🔧 " + .name
              end
            elif .type == "text" then
-             .text | if . != "" then split("\n") | to_entries | map(if .key == 0 then "   💬 " + .value else "      " + .value end) | join("\n") else empty end
+             .text | gsub("^\\s+$"; "") | if . != "" then split("\n") | map(select(. != "")) | to_entries | map(if .key == 0 then "   💬 " + .value else "      " + .value end) | join("\n") else empty end
            else empty
            end
-         ] | join("\n") | if . != "" then . else empty end
+         ] | map(select(. != "")) | join("\n") | if . != "" then . else empty end
        elif .type == "result" then
          if .subtype == "success" then "   ✅ Done (" + (.duration_ms / 1000 | tostring | split(".")[0]) + "s)"
          else "   ❌ Error: " + (.result // "unknown")
@@ -162,13 +166,13 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
      echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
      echo ""
      echo "🔨 IMPLEMENT"
-     { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
+     { cat .adp/PROMPT.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
      echo ""
      echo "🧹 SIMPLIFY"
-     { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
+     { cat .adp/simplify.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
      echo ""
      echo "🔍 REVIEW"
-     { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream
+     { cat .adp/review.md; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | adp_stream "$PROJECT_ROOT"
      echo ""
      echo "────────────────────────────────────────────────────────────────"
 
