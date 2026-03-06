@@ -36,6 +36,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 - Every commit must pass typecheck, linter, and tests.
 - Keep commits small and descriptive (conventional commits). **Commit subjects must be fully lowercase** — no uppercase letters anywhere, including abbreviations (write `url` not `URL`, `api` not `API`).
 - **Never leave uncommitted changes.** Before exiting, run `git status`. If there are modified or staged files, either commit them or revert them. Leaving uncommitted work causes the review agent to reject the story and wastes a full iteration.
+- **Do NOT simplify or refactor.** A separate simplify agent runs after you. Just make it work, commit, and exit. **Skip the pre-commit code-simplifier** mentioned in CLAUDE.md — the ADP loop has a dedicated SIMPLIFY phase that runs after your commit.
 - Print a short status line before each major step (e.g. "Reading prd.json...", "Implementing US-003: add login form", "Running tests...", "Committing...").
 - **Use tracer bullets.** Build the thinnest possible end-to-end slice first — one path through all layers (e.g. backend endpoint → contract → frontend hook → UI). Get it working, then fill in the remaining cases. This surfaces integration issues early and keeps each commit shippable.
 ```
