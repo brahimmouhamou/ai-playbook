@@ -35,11 +35,12 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    4. Read the spec file (path in prd.json) for this story's acceptance criteria, AND read every file in docs/*.md for project conventions. You must follow these conventions in your implementation.
    5. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
    6. If not already implemented: implement ONLY that user story
-   7. Run typecheck, linter, and tests
-   8. If failing: fix and retry (max 3 attempts)
-   9. If passing: git commit, append progress to progress.txt (same folder as prd.json)
-   10. Do NOT set passes to true — the review step handles that
-   11. Exit
+   7. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
+   8. Run typecheck, linter, and tests
+   9. If failing: fix and retry (max 3 attempts)
+   10. If passing: git commit, append progress to progress.txt (same folder as prd.json)
+   11. Do NOT set passes to true — the review step handles that
+   12. Exit
 
    ## Rules
    - Work on ONE user story only. Do not look ahead.
