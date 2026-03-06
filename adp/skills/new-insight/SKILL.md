@@ -68,9 +68,9 @@ The stub intentionally omits Problem, Conventions, Out of Scope, and Open Questi
 
 Write in the appropriate voice for the target file:
 
-- **Spec** (`specs/NNN-feature-name/spec.md`): User-observable behavior only. No technical details. Use Given/When/Then for acceptance criteria.
-- **Product convention** (`specs/conventions/`): Product-wide standard. Readable by anyone — developers, analysts, product people.
-- **Technical convention** (`docs/conventions/`): Developer and agent guidance. Code-level detail, architecture patterns, naming rules.
+- **Spec** (`specs/NNN-feature-name/spec.md`): User-observable behavior only. **No technical details at all** — no databases, entities, events, APIs, components, or system internals. Every acceptance criterion must be verifiable by a product manager using the product. If the bug report contains technical language, translate it to what the user sees.
+- **Product convention** (`specs/conventions/`): Product-wide standard. Readable by anyone — developers, analysts, product people. No implementation details.
+- **Technical convention** (`docs/conventions/`): Developer and agent guidance. Code-level detail, architecture patterns, naming rules. This is the **only** place where technical language belongs.
 
 If the same issue has BOTH a user-facing and technical aspect, draft entries for both locations.
 
