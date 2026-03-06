@@ -193,6 +193,10 @@ PROJECT_ROOT="$(pwd)/"
 IMPLEMENT_MODEL="${IMPLEMENT_MODEL:-}"
 REVIEW_MODEL="${REVIEW_MODEL:-haiku}"
 
+# Suppress telemetry/consent prompts so the loop runs unattended
+export DISABLE_TELEMETRY=1
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+
 run_phase() {
   local prompt="$1"
   local label="$2"
