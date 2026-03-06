@@ -34,7 +34,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 ## Rules
 - Work on ONE user story only. Do not look ahead.
 - Every commit must pass typecheck, linter, and tests.
-- Keep commits small and descriptive (conventional commits). **Commit subjects must be fully lowercase** — no uppercase letters anywhere, including abbreviations (write `url` not `URL`, `api` not `API`).
+- Keep commits small and descriptive (conventional commits). **Commit messages must be fully lowercase** — no uppercase letters in subject or scope, including abbreviations (write `url` not `URL`, `api` not `API`). Scopes must be kebab-case (write `feat(us-003):` not `feat(US-003):`).
 - **Never leave uncommitted changes.** Before exiting, run `git status`. If there are modified or staged files, either commit them or revert them. Leaving uncommitted work causes the review agent to reject the story and wastes a full iteration.
 - **Do NOT simplify or refactor.** A separate simplify agent runs after you. Just make it work, commit, and exit. **Skip the pre-commit code-simplifier** mentioned in CLAUDE.md — the ADP loop has a dedicated SIMPLIFY phase that runs after your commit.
 - Print a short status line before each major step (e.g. "Reading prd.json...", "Implementing US-003: add login form", "Running tests...", "Committing...").
