@@ -1,6 +1,6 @@
 {
   "name": "adp",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Agentic development playbook with spec-driven workflows. Commands: /init (bootstrap workspace), /new-spec (guided spec creation), /new-insight (route feedback), /plan (derive prd.json), /help (workflow overview).",
   "author": {
     "name": "Brahim Mouhamou"
