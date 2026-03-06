@@ -190,10 +190,16 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    PROJECT_ROOT="$(pwd)/"
 
+   IMPLEMENT_MODEL="${IMPLEMENT_MODEL:-}"
+   REVIEW_MODEL="${REVIEW_MODEL:-haiku}"
+
    run_phase() {
      local prompt="$1"
      local label="$2"
-     { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT" "$VERBOSE" "$label" "$CURRENT_US"
+     local model="${3:-}"
+     local model_flag=""
+     if [ -n "$model" ]; then model_flag="--model $model"; fi
+     { cat "$prompt"; echo "$CONTEXT"; } | claude -p --dangerously-skip-permissions $model_flag --output-format stream-json --verbose | .adp/adp-stream.sh "$PROJECT_ROOT" "$VERBOSE" "$label" "$CURRENT_US"
    }
 
    for i in $(seq 1 "$MAX_ITERATIONS"); do
@@ -205,14 +211,14 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
      BEFORE_SHA=$(git rev-parse HEAD 2>/dev/null || echo "none")
 
      echo "🔨 IMPLEMENT · $CURRENT_US"
-     run_phase .adp/PROMPT.md "IMPLEMENT"
+     run_phase .adp/PROMPT.md "IMPLEMENT" "$IMPLEMENT_MODEL"
 
      AFTER_SHA=$(git rev-parse HEAD 2>/dev/null || echo "none")
 
      if [ "$BEFORE_SHA" != "$AFTER_SHA" ]; then
        echo ""
        echo "🧹 SIMPLIFY · $CURRENT_US"
-       run_phase .adp/simplify.md "SIMPLIFY"
+       run_phase .adp/simplify.md "SIMPLIFY" "$REVIEW_MODEL"
      else
        echo ""
        echo "🧹 SIMPLIFY · $CURRENT_US — skipped (no new commits)"
@@ -220,7 +226,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
      echo ""
      echo "🔍 REVIEW · $CURRENT_US"
-     run_phase .adp/review.md "REVIEW"
+     run_phase .adp/review.md "REVIEW" "$REVIEW_MODEL"
      echo ""
      echo "────────────────────────────────────────────────────────────────"
 
