@@ -70,6 +70,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 ## Rules
 - Do NOT change behavior. Only restructure and clean up.
 - Do NOT add features, fix bugs, or address other stories.
+- **Before removing any code, check it against the story's acceptance criteria in prd.json.** Code that directly implements an AC must not be removed — only restructured.
 - **Do NOT run typecheck, linter, or tests before making changes.** The implement agent already verified these. Only run them after your simplifications to confirm nothing broke.
 - If tests fail after your changes, revert and exit.
 - Print a short status line before each major step (e.g. "Reading diff...", "Simplifying US-003...", "Running tests...", "Nothing to simplify — skipping.").
