@@ -31,16 +31,17 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ## Your Task
    1. Read the prd.json at the path given below
    2. Read progress.txt (same folder as prd.json) for context from previous iterations — if it exists
-   3. Pick the first user story where passes is false
-   4. Read the spec file (path in prd.json) for this story's acceptance criteria, AND read every file in docs/*.md for project conventions. You must follow these conventions in your implementation.
-   5. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
-   6. If not already implemented: implement ONLY that user story
-   7. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
-   8. Run typecheck, linter, and tests
-   9. If failing: fix and retry (max 3 attempts)
-   10. If passing: git commit, append progress to progress.txt (same folder as prd.json)
-   11. Do NOT set passes to true — the review step handles that
-   12. Exit
+   3. Read technical-notes.md (same folder as prd.json) for implementation-specific technical context — if it exists
+   4. Pick the first user story where passes is false AND blocked is not true. Skip blocked stories entirely.
+   5. Read the spec file (path in prd.json) for this story's acceptance criteria, AND read every file in docs/*.md for project conventions. You must follow these conventions in your implementation.
+   6. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
+   7. If not already implemented: implement ONLY that user story
+   8. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
+   9. Run typecheck, linter, and tests
+   10. If failing: fix and retry (max 3 attempts)
+   11. If passing: git commit, append progress to progress.txt (same folder as prd.json)
+   12. Do NOT set passes to true — the review step handles that
+   13. Exit
 
    ## Rules
    - Work on ONE user story only. Do not look ahead.
@@ -59,7 +60,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    The prd.json path and feature context will be provided below this prompt by loop.sh.
 
    ## Your Task
-   1. Read the prd.json at the path given below to identify the current user story (first where passes is false)
+   1. Read the prd.json at the path given below to identify the current user story (first where passes is false AND blocked is not true)
    2. Read every file in docs/*.md for project conventions
    3. Read the git diff of the last commit(s) from this iteration
    4. Simplify the code without changing behavior — ensure the result follows docs/*.md conventions:
@@ -88,7 +89,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    ## Your Task
    1. Read the prd.json at the path given below
-   2. Identify which user story was just implemented (the first where passes is false)
+   2. Identify which user story was just implemented (the first where passes is false AND blocked is not true)
    3. Read the acceptance criteria for that story AND read every file in docs/*.md for project conventions
    4. Review the git diff (all commits from this iteration) against each acceptance criterion and each relevant convention
    5. Decide: APPROVE or REJECT
@@ -208,7 +209,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    }
 
    for i in $(seq 1 "$MAX_ITERATIONS"); do
-     CURRENT_US=$(jq -r '[.userStories[] | select(.passes == false)] | first | "\(.id): \(.title)"' "$PRD" 2>/dev/null || echo "")
+     CURRENT_US=$(jq -r '[.userStories[] | select(.passes == false and (.blocked // false) == false)] | first | "\(.id): \(.title)"' "$PRD" 2>/dev/null || echo "")
      echo ""
      echo "── ADP iteration $i/$MAX_ITERATIONS ─────────────────────────────"
      echo ""
@@ -235,9 +236,15 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
      echo ""
      echo "────────────────────────────────────────────────────────────────"
 
-     if jq -e '[.userStories[] | select(.passes == false)] | length == 0' "$PRD" > /dev/null 2>&1; then
+     REMAINING=$(jq '[.userStories[] | select(.passes == false and (.blocked // false) == false)] | length' "$PRD" 2>/dev/null || echo "1")
+     BLOCKED_COUNT=$(jq '[.userStories[] | select((.blocked // false) == true)] | length' "$PRD" 2>/dev/null || echo "0")
+     if [ "$REMAINING" -eq 0 ]; then
        echo ""
-       echo "🎉 All user stories complete!"
+       if [ "$BLOCKED_COUNT" -gt 0 ]; then
+         echo "🎉 All unblocked stories complete! ($BLOCKED_COUNT blocked remaining)"
+       else
+         echo "🎉 All user stories complete!"
+       fi
        exit 0
      fi
    done

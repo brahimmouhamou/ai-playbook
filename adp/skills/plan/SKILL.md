@@ -31,15 +31,18 @@ If the spec isn't ready, stop and tell the user to finish it first.
    Rules:
    - **Mirror the spec exactly.** IDs, titles, and acceptance criteria come straight from the spec. Don't add, remove, or rephrase.
    - **Order by priority.** Place stories in implementation order — dependencies first. The first `passes: false` story is the next one the agent picks up.
+   - **Every story has `blocked: false` by default.** If the user indicates a story depends on external work (another spec, a manual prerequisite, infrastructure not yet available), set `blocked: true` and add an optional `blockedReason` string. Blocked stories are skipped by the loop.
    - **Smart merge with existing prd.json.** If a prd.json already exists, compare each story by ID and acceptance criteria:
-     - If the story ID exists in the old prd.json **and its acceptance criteria are identical** → copy `passes` from the old entry.
-     - If the story is new or its acceptance criteria changed → set `passes: false`.
+     - If the story ID exists in the old prd.json **and its acceptance criteria are identical** → copy `passes` and `blocked`/`blockedReason` from the old entry.
+     - If the story is new or its acceptance criteria changed → set `passes: false`, `blocked: false`.
      - Append a line to `progress.txt` listing which stories were reset and why (e.g. `RE-PLANNED: US-002 — new AC added: AC-016`).
-   - If no prd.json exists yet, all stories start as `passes: false`.
+   - If no prd.json exists yet, all stories start as `passes: false`, `blocked: false`.
    - **No per-story verification.** Verification is global via hooks (typecheck, linter, tests).
    - **Feature and spec path are required.** The prd.json must reference the source spec.
 
-5. **Present to user**: Show the file for review.
+5. **Create technical notes (if applicable)**: If the user has provided implementation-specific technical context (database schema changes, caching strategies, service wiring, data flow details), create `.adp/artifacts/NNN-feature-name/technical-notes.md` with that information. Ask the user if they have technical notes to include. If they don't, skip this step.
+
+6. **Present to user**: Show the file(s) for review.
 
 ## Key Principles
 

@@ -6,6 +6,7 @@
 |----------|-----------------|----------|-------|
 | `specs/NNN-feature-name/spec.md` | Feature-specific user stories and acceptance criteria | Anyone | User-observable behavior, Given/When/Then |
 | `specs/conventions/` | Product-wide behavior standards (pagination, auth, UX patterns) | Anyone | Product standard, stakeholder-readable |
+| `.adp/artifacts/NNN-feature-name/technical-notes.md` | Feature-specific implementation details (schema, caching, wiring) | Agents, developers | Technical detail, specific to one feature |
 | `docs/conventions/` | Technical coding rules and architecture guidelines | Developers, agents | Code-level detail, patterns, naming rules |
 
 ## Decision Summary
@@ -13,7 +14,8 @@
 1. **Can a user verify it by using the product?**
    - Yes + feature-specific → `specs/NNN-feature-name/spec.md`
    - Yes + applies across features → `specs/conventions/`
-   - No (only verified by reading code) → `docs/conventions/`
+   - No (only verified by reading code) + feature-specific → `.adp/artifacts/NNN-feature-name/technical-notes.md`
+   - No (only verified by reading code) + applies across features → `docs/conventions/`
 
 2. **Both user-facing AND technical?** → Draft entries for both locations.
 

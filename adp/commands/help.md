@@ -33,13 +33,16 @@ Display the following overview to the user exactly as written:
 └── artifacts/
     └── NNN-feature-name/
         ├── prd.json                       # progress tracker (committed)
+        ├── technical-notes.md             # implementation context (committed, optional)
         └── progress.txt                   # learning log (gitignored)
 ```
 
 ## Key Concepts
 
 - **Specs are permanent, plans are disposable.** The spec (`specs/NNN/spec.md`) is the source of truth. prd.json is derived from it.
-- **Array order is the plan.** Stories in prd.json are ordered by priority. The agent picks the first `passes: false` story.
+- **Array order is the plan.** Stories in prd.json are ordered by priority. The agent picks the first `passes: false` (and not blocked) story.
+- **Blocked stories are skipped.** Stories with `"blocked": true` are excluded from the loop. Useful for dependencies on other features or manual prerequisites.
+- **Technical notes ride along.** Optional `technical-notes.md` in the artifacts folder provides implementation context (schema changes, caching strategies, etc.) without polluting the product spec.
 - **Conventions avoid repetition.** Product behavior in `specs/conventions/`, technical rules in `docs/conventions/`.
 - **prd.json is committed.** It tracks progress across sessions. Only `progress.txt` is gitignored.
 

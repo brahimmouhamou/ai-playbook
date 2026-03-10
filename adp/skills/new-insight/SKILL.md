@@ -13,7 +13,7 @@ Route bugs, questions, and discoveries to the right file using a decision tree.
 
 **Yes** → it's product behavior. Go to Step 2.
 
-**No, it can only be verified by reading code or running technical tools** → it's implementation guidance → update or create a doc in `docs/conventions/`.
+**No, it can only be verified by reading code or running technical tools** → it's implementation guidance. Go to Step 3.
 
 ### Step 2: Is it specific to one feature?
 
@@ -24,6 +24,12 @@ Route bugs, questions, and discoveries to the right file using a decision tree.
 **No, it applies across features** → update or create a convention in `specs/conventions/`:
 - If the convention file exists, add the new behavior
 - If no convention covers this concern, create a new one
+
+### Step 3: Is it specific to one feature's implementation?
+
+**Yes, and a prd.json exists for that feature** → update `.adp/artifacts/NNN-feature-name/technical-notes.md` (create if it doesn't exist). This is for implementation-specific details like schema changes, caching strategies, service wiring, data flow — things the implementing agent needs but that don't belong in the product spec.
+
+**No, it applies across features** → update or create a doc in `docs/conventions/`.
 
 ## Scope Boundary
 
