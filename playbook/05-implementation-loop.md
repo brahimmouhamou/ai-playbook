@@ -56,20 +56,21 @@ The prd.json path and feature context will be provided below this prompt by loop
 1. Read the prd.json at the path given below to identify the current user story (first where passes is false)
 2. **Read project conventions.** Read every file in `docs/**/*.md` for project conventions.
 3. Read the git diff of the last commit(s) from this iteration
-4. Simplify the code without changing behavior — ensure the result follows project conventions:
+4. If nothing to simplify: exit immediately without committing. Do not run typecheck, linter, or tests.
+5. If there are simplifications, apply them — ensure the result follows project conventions:
    - Remove dead code and unused imports
    - Extract duplicated logic
    - Simplify conditionals and reduce nesting
    - Improve naming where intent is unclear
    - Remove unnecessary abstractions
-5. Run typecheck, linter, and tests — nothing may break
-6. If you made changes: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
-7. If nothing to simplify: exit without committing
+6. Run typecheck, linter, and tests — nothing may break
+7. If passing: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
 8. Exit
 
 ## Rules
 - Do NOT change behavior. Only restructure and clean up.
 - Do NOT add features, fix bugs, or address other stories.
+- **Do NOT run typecheck, linter, or tests before making changes.** The implement agent already verified these. Only run them after your simplifications to confirm nothing broke.
 - If tests fail after your changes, revert and exit.
 - Print a short status line before each major step (e.g. "Reading diff...", "Simplifying US-003...", "Running tests...", "Nothing to simplify — skipping.").
 ```
