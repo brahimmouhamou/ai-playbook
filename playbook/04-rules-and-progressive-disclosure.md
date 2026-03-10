@@ -18,7 +18,7 @@ Contains ONLY:
 ### Example
 
 ```markdown
-# NineID Core Platform
+# Acme Core Platform
 
 Multi-tenant contractor compliance SaaS. Monorepo with pnpm workspaces.
 

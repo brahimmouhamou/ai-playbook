@@ -11,7 +11,9 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
 1. **Never delete existing files.** If `.adp/` already exists, that's fine — proceed and overwrite only PROMPT.md, simplify.md, review.md, loop.sh, and adp-stream.sh. Never remove the `artifacts/` folder or anything inside it. Existing prd.json files, progress.txt files, and any other user content must be preserved.
 
-2. **Create the folder structure** (use `mkdir -p`, safe to run if folders exist):
+2. **Read existing files before writing.** If `.adp/` already exists, read every file you are about to overwrite (PROMPT.md, simplify.md, review.md, loop.sh, adp-stream.sh) using the Read tool — but only if they exist. This is required because you cannot write or edit a file without reading it first. Use Glob to list existing files in `.adp/` first, then read each one that matches the files you will create.
+
+3. **Create the folder structure** (use `mkdir -p`, safe to run if folders exist):
    ```
    .adp/
    ├── PROMPT.md
@@ -22,7 +24,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    └── artifacts/
    ```
 
-3. **Create `.adp/PROMPT.md`**:
+4. **Create `.adp/PROMPT.md`**:
    ```markdown
    You are implementing a feature.
 
@@ -33,15 +35,16 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    2. Read progress.txt (same folder as prd.json) for context from previous iterations — if it exists
    3. Read technical-notes.md (same folder as prd.json) for implementation-specific technical context — if it exists
    4. Pick the first user story where passes is false AND blocked is not true. Skip blocked stories entirely.
-   5. Read the spec file (path in prd.json) for this story's acceptance criteria, AND read every file in docs/*.md for project conventions. You must follow these conventions in your implementation.
-   6. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
-   7. If not already implemented: implement ONLY that user story
-   8. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
-   9. Run typecheck, linter, and tests
-   10. If failing: fix and retry (max 3 attempts)
-   11. If passing: git commit, append progress to progress.txt (same folder as prd.json)
-   12. Do NOT set passes to true — the review step handles that
-   13. Exit
+   5. Read the spec file (path in prd.json) for this story's acceptance criteria.
+   6. **Read project conventions.** Read every file in `docs/**/*.md` for project conventions. You must follow these conventions in your implementation.
+   7. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
+   8. If not already implemented: implement ONLY that user story
+   9. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
+   10. Run typecheck, linter, and tests
+   11. If failing: fix and retry (max 3 attempts)
+   12. If passing: git commit, append progress to progress.txt (same folder as prd.json)
+   13. Do NOT set passes to true — the review step handles that
+   14. Exit
 
    ## Rules
    - Work on ONE user story only. Do not look ahead.
@@ -53,7 +56,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    - **Use tracer bullets.** Build the thinnest possible end-to-end slice first — one path through all layers (e.g. backend endpoint → contract → frontend hook → UI). Get it working, then fill in the remaining cases. This surfaces integration issues early and keeps each commit shippable.
    ```
 
-4. **Create `.adp/simplify.md`**:
+5. **Create `.adp/simplify.md`**:
    ```markdown
    You are simplifying code that was just implemented for a user story.
 
@@ -61,9 +64,9 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    ## Your Task
    1. Read the prd.json at the path given below to identify the current user story (first where passes is false AND blocked is not true)
-   2. Read every file in docs/*.md for project conventions
+   2. **Read project conventions.** Read every file in `docs/**/*.md` for project conventions.
    3. Read the git diff of the last commit(s) from this iteration
-   4. Simplify the code without changing behavior — ensure the result follows docs/*.md conventions:
+   4. Simplify the code without changing behavior — ensure the result follows project conventions:
       - Remove dead code and unused imports
       - Extract duplicated logic
       - Simplify conditionals and reduce nesting
@@ -81,7 +84,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    - Print a short status line before each major step (e.g. "Reading diff...", "Simplifying US-003...", "Running tests...", "Nothing to simplify — skipping.").
    ```
 
-5. **Create `.adp/review.md`**:
+6. **Create `.adp/review.md`**:
    ```markdown
    You are reviewing a completed user story.
 
@@ -90,7 +93,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ## Your Task
    1. Read the prd.json at the path given below
    2. Identify which user story was just implemented (the first where passes is false AND blocked is not true)
-   3. Read the acceptance criteria for that story AND read every file in docs/*.md for project conventions
+   3. Read the acceptance criteria for that story AND read every file in `docs/**/*.md` for project conventions
    4. Review the git diff (all commits from this iteration) against each acceptance criterion and each relevant convention
    5. Decide: APPROVE or REJECT
 
@@ -110,11 +113,11 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    ## Review Checklist
    - Does the diff satisfy every acceptance criterion? (check each AC individually)
-   - Does the code follow conventions in docs/*.md?
+   - Does the code follow conventions in `docs/**/*.md`?
    - Is the implementation minimal and focused (no scope creep)?
    ```
 
-6. **Create `.adp/adp-stream.sh`**:
+7. **Create `.adp/adp-stream.sh`**:
    ```bash
    #!/bin/bash
    # Stream filter for ADP loop output.
@@ -166,7 +169,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    done || true
    ```
 
-7. **Create `.adp/loop.sh`**:
+8. **Create `.adp/loop.sh`**:
    ```bash
    #!/bin/bash
    set -euo pipefail
@@ -254,16 +257,16 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    exit 1
    ```
 
-8. **Make both scripts executable**: Run `chmod +x .adp/loop.sh .adp/adp-stream.sh`.
+9. **Make both scripts executable**: Run `chmod +x .adp/loop.sh .adp/adp-stream.sh`.
 
-9. **Update `.gitignore`**: Check if `.adp/artifacts/**/progress.txt` is already in `.gitignore`. If not, append:
+10. **Update `.gitignore`**: Check if `.adp/artifacts/**/progress.txt` is already in `.gitignore`. If not, append:
    ```
    # ADP: agent progress logs (ephemeral, per-feature)
    .adp/artifacts/**/progress.txt
    ```
    To check: `grep -q 'adp/artifacts' .gitignore` — skip if it matches.
 
-10. **Confirm to user**: Show what was created.
+11. **Confirm to user**: Show what was created.
 
 ## Done
 

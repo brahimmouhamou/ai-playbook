@@ -22,15 +22,16 @@ The prd.json path and feature context will be provided below this prompt by loop
 1. Read the prd.json at the path given below
 2. Read progress.txt (same folder as prd.json) for context from previous iterations — if it exists
 3. Pick the first user story where passes is false
-4. Read the spec file (path in prd.json) for this story's acceptance criteria, AND read every file in docs/*.md for project conventions. You must follow these conventions in your implementation.
-5. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
-6. If not already implemented: implement ONLY that user story
-7. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
-8. Run typecheck, linter, and tests
-9. If failing: fix and retry (max 3 attempts)
-10. If passing: git commit, append progress to progress.txt (same folder as prd.json)
-11. Do NOT set passes to true — the review step handles that
-12. Exit
+4. Read the spec file (path in prd.json) for this story's acceptance criteria.
+5. **Read project conventions.** Read every file in `docs/**/*.md` for project conventions. You must follow these conventions in your implementation.
+6. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
+7. If not already implemented: implement ONLY that user story
+8. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
+9. Run typecheck, linter, and tests
+10. If failing: fix and retry (max 3 attempts)
+11. If passing: git commit, append progress to progress.txt (same folder as prd.json)
+12. Do NOT set passes to true — the review step handles that
+13. Exit
 
 ## Rules
 - Work on ONE user story only. Do not look ahead.
@@ -53,9 +54,9 @@ The prd.json path and feature context will be provided below this prompt by loop
 
 ## Your Task
 1. Read the prd.json at the path given below to identify the current user story (first where passes is false)
-2. Read every file in docs/*.md for project conventions
+2. **Read project conventions.** Read every file in `docs/**/*.md` for project conventions.
 3. Read the git diff of the last commit(s) from this iteration
-4. Simplify the code without changing behavior — ensure the result follows docs/*.md conventions:
+4. Simplify the code without changing behavior — ensure the result follows project conventions:
    - Remove dead code and unused imports
    - Extract duplicated logic
    - Simplify conditionals and reduce nesting
@@ -85,7 +86,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 ## Your Task
 1. Read the prd.json at the path given below
 2. Identify which user story was just implemented (the first where passes is false)
-3. Read the acceptance criteria for that story AND read every file in docs/*.md for project conventions
+3. Read the acceptance criteria for that story AND read every file in `docs/**/*.md` for project conventions
 4. Review the git diff (all commits from this iteration) against each acceptance criterion and each relevant convention
 5. Decide: APPROVE or REJECT
 
@@ -105,7 +106,7 @@ The prd.json path and feature context will be provided below this prompt by loop
 
 ## Review Checklist
 - Does the diff satisfy every acceptance criterion? (check each AC individually)
-- Does the code follow conventions in docs/*.md?
+- Does the code follow conventions in `docs/**/*.md`?
 - Is the implementation minimal and focused (no scope creep)?
 ```
 

@@ -1,4 +1,4 @@
-# Agentic Development Playbook for NineID
+# Agentic Development Playbook
 
 **Based on**: Matt Pocock, Geoffrey Huntley, community best practices (Jan-Mar 2026)
 
@@ -13,7 +13,7 @@ This playbook is organized as a layered file structure. This index provides a br
 ## Sections
 
 ### [Philosophy & Architecture](./01-philosophy-and-architecture.md)
-The foundational mental model behind agentic development at NineID. Covers why simple loops beat complex orchestrators, how the spec becomes the primary engineering artifact, and provides the full architecture diagram showing human-owned files, agent-owned files, enforcement hooks, and skills. Start here if you're new to the playbook or need the big picture.
+The foundational mental model behind agentic development. Covers why simple loops beat complex orchestrators, how the spec becomes the primary engineering artifact, and provides the full architecture diagram showing human-owned files, agent-owned files, enforcement hooks, and skills. Start here if you're new to the playbook or need the big picture.
 
 ### [Specification System](./02-specify.md)
 How we write specs using DRY conventions. Convention files (`specs/conventions/`) capture cross-cutting concerns like pagination, auth, and error handling — written once, referenced everywhere. Feature specs (`specs/NNN-feature-name/spec.md`) contain only the delta: what's unique to that feature. Includes the full spec template and explains why this approach saves time for writers, agents, analysts, and new developers.
