@@ -34,10 +34,13 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    1. Read the prd.json at the path given below
    2. Read progress.txt (same folder as prd.json) for context from previous iterations — if it exists
    3. Read technical-notes.md (same folder as prd.json) for implementation-specific technical context — if it exists
-   4. Pick the first user story where passes is false AND blocked is not true. Skip blocked stories entirely.
+   4. Pick the first user story where `passes` is false AND `blocked` is not true. This is "the current story". Do NOT advance to a later story under any circumstance — even if progress.txt says the current story is done. The review agent owns advancement.
    5. Read the spec file (path in prd.json) for this story's acceptance criteria.
    6. **Read project conventions.** Read every file in `docs/**/*.md` for project conventions. You must follow these conventions in your implementation.
-   7. **Fast-path check (max 2 minutes):** Before deep exploration, do a quick grep for each AC's key signal — the function name, error message, route path, or UI element it describes. If every AC has matching code, append "Fast-path: all ACs appear implemented — deferring to review" to progress.txt and exit immediately. No commits, no tests, no traceability work. It's OK to be wrong here — the review agent will REJECT if something is actually missing, and the next iteration will fix it.
+   7. **Fast-path check (max 2 minutes).** Before writing any code, grep for each AC's key signal (function name, route path, UI text, error message). Two cases:
+      - **Every AC matches existing code.** The story is ready for review. Append "Fast-path: <US-NNN> already implemented — deferring to review" to progress.txt and exit 0. Do not write code. Do not run tests. Do not pick another story.
+      - **Some ACs have no matching code.** Proceed with implementation of THIS story only (steps 8-13).
+      It's OK to be wrong here — REVIEW will REJECT if something is actually missing, and the next iteration will fix it.
    8. If not already implemented: implement ONLY that user story
    9. Write or update tests that verify each acceptance criterion for this story. Every AC must have a corresponding test — if a test already exists and covers the criterion, leave it. If not, add one.
    10. Run typecheck, linter, and tests
@@ -63,26 +66,30 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    The prd.json path and feature context will be provided below this prompt by loop.sh.
 
    ## Your Task
-   1. Read the prd.json at the path given below to identify the current user story (first where passes is false AND blocked is not true)
-   2. **Read project conventions.** Read every file in `docs/**/*.md` for project conventions.
-   3. Read the git diff of the last commit(s) from this iteration
+   1. Read the prd.json at the path given below to identify the current user story (first where passes is false AND blocked is not true).
+   2. Read the git diff of the last commit(s) from this iteration, **excluding lockfiles and generated files**:
+      `git diff HEAD~1..HEAD -- ':!**/pnpm-lock.yaml' ':!**/package-lock.json' ':!**/yarn.lock' ':!**/dist/**' ':!**/.astro/**'`
+   3. Identify which convention files under `docs/conventions/` are clearly relevant to what the diff touches (typically 1-3 files, not all of them). Read only those. If unsure, skip this step — IMPLEMENT already applied conventions.
    4. If nothing to simplify: exit immediately without committing. Do not run typecheck, linter, or tests.
-   5. If there are simplifications, apply them — ensure the result follows project conventions:
+   5. If there are simplifications, apply them:
       - Remove dead code and unused imports
       - Extract duplicated logic
       - Simplify conditionals and reduce nesting
       - Improve naming where intent is unclear
       - Remove unnecessary abstractions
-   6. Run typecheck, linter, and tests — nothing may break
-   7. If passing: git commit — use the format `refactor(US-NNN): simplify <short title>` where US-NNN is the story ID and `<short title>` is a brief summary of the user story (e.g. `refactor(US-004): simplify add login form`)
-   8. Exit
+   6. Run typecheck, linter, and tests — nothing may break.
+   7. If passing: git commit — use the format `refactor(us-NNN): simplify <short title>`.
+   8. If nothing to simplify: exit 0 without committing.
+   9. Exit.
 
    ## Rules
    - Do NOT change behavior. Only restructure and clean up.
    - Do NOT add features, fix bugs, or address other stories.
    - **Before removing any code, check it against the story's acceptance criteria in prd.json.** Code that directly implements an AC must not be removed — only restructured.
    - **Do NOT run typecheck, linter, or tests before making changes.** The implement agent already verified these. Only run them after your simplifications to confirm nothing broke.
-   - If tests fail after your changes, revert and exit.
+   - If tests fail after your changes, revert and exit 0 (non-fatal).
+   - **Never read `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `dist/`, or `.astro/`** — they will overflow your context.
+   - If your context is filling up, stop reading files and exit 0. SIMPLIFY is optional polish; the loop will proceed.
    - Print a short status line before each major step (e.g. "Reading diff...", "Simplifying US-003...", "Running tests...", "Nothing to simplify — skipping.").
    ```
 
@@ -95,8 +102,11 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    ## Your Task
    1. Read the prd.json at the path given below
    2. Identify which user story was just implemented (the first where passes is false AND blocked is not true)
-   3. Read the acceptance criteria for that story AND read every file in `docs/**/*.md` for project conventions
-   4. Review the git diff (all commits from this iteration) against each acceptance criterion and each relevant convention
+   3. Read the acceptance criteria for that story. Identify which convention files under `docs/conventions/` and `specs/conventions/` are directly relevant to the story's ACs (typically 1-3 files). Read only those.
+   4. Read the git diff of all commits from this iteration, **excluding lockfiles and generated files**:
+      `git diff <iteration-base>..HEAD -- ':!**/pnpm-lock.yaml' ':!**/package-lock.json' ':!**/yarn.lock' ':!**/dist/**' ':!**/.astro/**'`
+      If you can't determine the iteration base, use `git show HEAD -- ':!**/*.lock' ':!**/dist/**' ':!**/.astro/**'` for the latest commit only.
+      Review the diff against each acceptance criterion and each relevant convention.
    5. Decide: APPROVE or REJECT
 
    ## If APPROVE
@@ -110,6 +120,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
 
    ## Rules
    - **Do NOT run tests, typecheck, or lint.** The implement agent already verified these. Your only job is to read the diff and check it against the acceptance criteria. Running builds wastes 5–10 minutes.
+   - **Never read `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `dist/`, or `.astro/`.** They will overflow your context without helping you review.
    - **If there is no git diff** (implement agent fast-pathed or left no commits), check working tree changes with `git status`. If there are uncommitted changes relevant to this story, REJECT with "uncommitted changes — implement agent must commit before review."
    - Print a short status line before each major step (e.g. "Reading AC for US-003...", "Checking criterion: user can log in...", "APPROVED: US-003", "REJECTED: US-003 — missing error handling").
 
@@ -198,7 +209,7 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
    PROJECT_ROOT="$(pwd)/"
 
    IMPLEMENT_MODEL="${IMPLEMENT_MODEL:-}"
-   REVIEW_MODEL="${REVIEW_MODEL:-haiku}"
+   REVIEW_MODEL="${REVIEW_MODEL:-sonnet}"
 
    # Suppress telemetry/consent prompts so the loop runs unattended
    export DISABLE_TELEMETRY=1
@@ -229,12 +240,13 @@ Initialize the ADP workspace in a project. Creates the `.adp/` folder with opera
      if [ "$BEFORE_SHA" != "$AFTER_SHA" ]; then
        echo ""
        echo "🧹 SIMPLIFY · $CURRENT_US"
-       run_phase .adp/simplify.md "SIMPLIFY" "$REVIEW_MODEL"
+       run_phase .adp/simplify.md "SIMPLIFY" "$REVIEW_MODEL" || echo "   simplify phase errored — continuing to review"
      else
        echo ""
        echo "🧹 SIMPLIFY · $CURRENT_US — skipped (no new commits)"
      fi
 
+     CURRENT_US=$(jq -r '[.userStories[] | select(.passes == false and (.blocked // false) == false)] | first | "\(.id): \(.title)"' "$PRD" 2>/dev/null || echo "")
      echo ""
      echo "🔍 REVIEW · $CURRENT_US"
      run_phase .adp/review.md "REVIEW" "$REVIEW_MODEL"
