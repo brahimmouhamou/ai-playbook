@@ -41,3 +41,6 @@ A phased, day-by-day rollout plan for adopting this playbook. Eight phases from 
 
 ### [Key Principles](./10-key-principles.md)
 The eight core principles distilled into a quick-reference summary. Covers spec ownership, progressive disclosure, three-tier enforcement, fresh context, backpressure, DRY specs, disposable plans, and the HITL-first approach. Read this for a fast refresher on the playbook's philosophy.
+
+### [Preference Accumulation](./11-preference-accumulation.md)
+The RLHF-analog layer on top of ADP's existing RLVR gates (typecheck, tests, linter). Durable preference logs under `.adp/preferences/` capture REJECT reasons and simplify pairs across every feature. Three read paths: few-shot retrieval in the review agent, auto-escalation in `/new-insight` (3 strikes → convention update), and offline `/distill-conventions` for rubric distillation. Read this once your team sees the same rejection twice.

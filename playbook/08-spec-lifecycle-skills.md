@@ -54,3 +54,5 @@ Stories that are already done cost a few seconds of review each. The story cover
 If `/adp:new-insight` updates a convention file rather than a spec, you may not need to re-plan at all. The loop's simplify and review agents read `docs/**/*.md` every iteration. If existing code now violates the updated convention, the next loop run on any feature will catch it.
 
 **Key principle:** don't persist prd.json after a feature is done. Delete it or let it be overwritten. The spec + code tell you everything you need to know.
+
+**Exception — the preference log is durable.** `.adp/preferences/rejections.jsonl` and `.adp/preferences/simplifications.jsonl` accumulate across every feature and are never deleted. They are the RLHF-analog corpus: each line is a preference signal that calibrates future review and simplify agents. See [11-preference-accumulation.md](./11-preference-accumulation.md) for how the log is written, read, and distilled into conventions.

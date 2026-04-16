@@ -69,7 +69,22 @@ The prd.json path and feature context will be provided below this prompt by loop
    - Remove unnecessary abstractions
 6. Run typecheck, linter, and tests — nothing may break.
 7. If passing: git commit — use the format `refactor(us-NNN): simplify <short title>`.
-8. If nothing to simplify: exit 0 without committing.
+8. **Only if step 7 produced a new commit, append a pair entry to `.adp/preferences/simplifications.jsonl`.** Captures the before/after pair as DPO-style preference data for later convention distillation. Log-append failure is non-fatal — the pair is recoverable from the `refactor(us-*)` commit in git history.
+   **Substitutions required before running:** `<feature-slug>`, `<US-NNN>`, `<one-line what changed and why>`, `<docs/conventions/<file>.md or empty>`.
+   ```bash
+   # Guard: only run if step 7 committed (HEAD~1 must exist and differ from HEAD).
+   if git rev-parse HEAD~1 >/dev/null 2>&1 && [ "$(git rev-parse HEAD~1)" != "$(git rev-parse HEAD)" ]; then
+     mkdir -p .adp/preferences
+     BEFORE=$(git rev-parse HEAD~1)
+     AFTER=$(git rev-parse HEAD)
+     jq -nc --arg feature "<feature-slug>" --arg story "<US-NNN>" \
+            --arg before "$BEFORE" --arg after "$AFTER" \
+            --arg rationale "<one-line what changed and why>" \
+            --arg convention "<docs/conventions/<file>.md or empty>" \
+       '{ts: now | todateiso8601, feature: $feature, story: $story, before_sha: $before, after_sha: $after, rationale: $rationale, convention: $convention}' \
+       >> .adp/preferences/simplifications.jsonl || true
+   fi
+   ```
 9. Exit.
 
 ## Rules
@@ -99,8 +114,18 @@ The prd.json path and feature context will be provided below this prompt by loop
 4. Read the git diff of all commits from this iteration, **excluding lockfiles and generated files**:
    `git diff <iteration-base>..HEAD -- ':!**/pnpm-lock.yaml' ':!**/package-lock.json' ':!**/yarn.lock' ':!**/dist/**' ':!**/.astro/**'`
    If you can't determine the iteration base, use `git show HEAD -- ':!**/*.lock' ':!**/dist/**' ':!**/.astro/**'` for the latest commit only.
-   Review the diff against each acceptance criterion and each relevant convention.
-5. Decide: APPROVE or REJECT
+5. **Pull few-shot examples from the preference log.** Retrieve up to 3 past rejections whose `tags` overlap with paths in the current diff. Treat matched entries as calibration: apply the same standards they reflect to this review.
+   **Substitutions required before running:** `<tag1>`,`<tag2>` — replace with 1-3 tags from the canonical vocabulary in `playbook/11-preference-accumulation.md`. Do not run the block while any `<...>` placeholder remains.
+   ```bash
+   [ -s .adp/preferences/rejections.jsonl ] && {
+     tail -n 500 .adp/preferences/rejections.jsonl | \
+       jq -c --argjson tags '["<tag1>","<tag2>"]' \
+         'select(.tags | any(. as $t | $tags | index($t)))' | \
+       head -3 || true
+   }
+   ```
+6. Review the diff against each acceptance criterion, each relevant convention, and the retrieved few-shot examples.
+7. Decide: APPROVE or REJECT
 
 ## If APPROVE
 - Set passes to true in prd.json
@@ -109,6 +134,16 @@ The prd.json path and feature context will be provided below this prompt by loop
 ## If REJECT
 - Do NOT change passes
 - Append "REJECTED: US-NNN — [specific reasons and what needs to change]" to progress.txt (same folder as prd.json)
+- **Append a structured entry to `.adp/preferences/rejections.jsonl`** so the rejection survives past this feature.
+  **Substitutions required before running** (all bracketed values must be replaced; do not run with any `<...>` remaining): `<feature-slug>` (from the context block), `<US-NNN>` and `<AC-NNN>` (from prd.json), `<short reason>`, `<tag1>`/`<tag2>` (from the canonical vocabulary in `playbook/11-preference-accumulation.md`).
+  ```bash
+  mkdir -p .adp/preferences
+  jq -nc --arg feature "<feature-slug>" --arg story "<US-NNN>" --arg reason "<short reason>" \
+         --arg ac "<AC-NNN>" --arg diff_sha "$(git rev-parse HEAD)" \
+         --argjson tags '["<tag1>","<tag2>"]' \
+    '{ts: now | todateiso8601, feature: $feature, story: $story, reason: $reason, ac: $ac, diff_sha: $diff_sha, tags: $tags}' \
+    >> .adp/preferences/rejections.jsonl
+  ```
 - The next implementation iteration will read this feedback
 
 ## Rules

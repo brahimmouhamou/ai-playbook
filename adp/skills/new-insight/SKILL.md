@@ -9,6 +9,29 @@ Route bugs, questions, and discoveries to the right file using a decision tree.
 
 ## Decision Tree
 
+### Step 0: Check the preference log for recurring patterns
+
+Before routing, scan `.adp/preferences/rejections.jsonl` for matching history. Pick 1-3 candidate tags from the **canonical vocabulary** in `playbook/11-preference-accumulation.md` (e.g. `pagination`, `error-handling`, `tenant-isolation`) — free-form tags will fragment retrieval.
+
+**Substitutions required before running:** `<tag1>`,`<tag2>` — replace with tags from the canonical vocabulary. Do not run the block while any `<...>` placeholder remains.
+
+```bash
+[ -s .adp/preferences/rejections.jsonl ] && {
+  tail -n 500 .adp/preferences/rejections.jsonl | \
+    jq -s --argjson tags '["<tag1>","<tag2>"]' \
+      'map(select(.tags | any(. as $t | $tags | index($t))))
+       | {total: length, feature_count: (map(.feature) | unique | length), samples: .[0:5]}' || true
+}
+```
+
+**Escalation rule:** if matches span **≥3 total entries across ≥2 distinct features**, this finding is not feature-specific — it is a pattern. Route to a convention file regardless of Step 1, Step 2, or Step 3's single-feature reading:
+- If Step 1 answers "Yes" (user-observable) → `specs/conventions/<slug>.md`
+- If Step 1 answers "No" (implementation guidance) → `docs/conventions/<slug>.md`
+
+Never route an escalated finding to a per-feature spec or `technical-notes.md`. Say so explicitly in the output: *"Escalated to convention: N matching rejections across M features."*
+
+If the log is missing, empty, or below the threshold, proceed normally to Step 1.
+
 ### Step 1: Can a user verify it by using the product?
 
 **Yes** → it's product behavior. Go to Step 2.
